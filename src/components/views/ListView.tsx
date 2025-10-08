@@ -2,8 +2,8 @@ import { motion } from "framer-motion";
 import { Task } from "@/types/plan";
 import { Card } from "../ui/card";
 import { Badge } from "../ui/badge";
-import { Clock, GitBranch, ChevronDown } from "lucide-react";
-import { useState } from "react";
+import { Clock, GitBranch, ChevronDown, Pencil, Save, X } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 
 interface ListViewProps {
@@ -12,6 +12,31 @@ interface ListViewProps {
 
 export const ListView = ({ tasks }: ListViewProps) => {
   const [expandedTasks, setExpandedTasks] = useState<Set<number>>(new Set());
+  const [editing, setEditing] = useState<Record<number, boolean>>({});
+  const [titleDrafts, setTitleDrafts] = useState<Record<number, string>>({});
+  const listRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    // dynamically import animejs if available and run a subtle entrance animation
+    let mounted = true;
+    (async () => {
+      try {
+        const anime = await import("animejs");
+        if (!mounted || !listRef.current) return;
+        anime.default({
+          targets: listRef.current.querySelectorAll('.card-animate'),
+          translateY: [6, 0],
+          opacity: [0, 1],
+          delay: (_el: Element, i: number) => i * 40,
+          duration: 350,
+          easing: 'easeOutCubic',
+        });
+      } catch (e) {
+        // animejs not installed — ignore
+      }
+    })();
+    return () => { mounted = false; };
+  }, [tasks]);
 
   const toggleTask = (taskId: number) => {
     const newExpanded = new Set(expandedTasks);
@@ -32,8 +57,11 @@ export const ListView = ({ tasks }: ListViewProps) => {
       Legal: "bg-red-500/10 text-red-500 border-red-500/20",
       Planning: "bg-cyan-500/10 text-cyan-500 border-cyan-500/20",
       Testing: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
+      Financial: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
+      "Content Development": "bg-indigo-500/10 text-indigo-500 border-indigo-500/20",
+      Logistics: "bg-pink-500/10 text-pink-500 border-pink-500/20",
     };
-    return colors[category] || "bg-muted text-muted-foreground";
+    return colors[category] || "bg-violet-500/10 text-violet-500 border-violet-500/20";
   };
 
   return (
@@ -46,7 +74,7 @@ export const ListView = ({ tasks }: ListViewProps) => {
           transition={{ delay: index * 0.05 }}
         >
           <Card
-            className="p-6 hover:shadow-elevated transition-all duration-200 cursor-pointer bg-card border-border"
+            className="p-6 hover:shadow-elevated transition-all duration-200 cursor-pointer bg-card border-border card-animate overflow-hidden"
             onClick={() => toggleTask(task.id)}
           >
             <div className="flex items-start gap-4">
@@ -56,8 +84,61 @@ export const ListView = ({ tasks }: ListViewProps) => {
 
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between gap-4 mb-3">
-                  <div className="flex-1">
-                    <h3 className="text-base font-semibold mb-2">{task.title}</h3>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-2">
+                      {editing[task.id] ? (
+                        <input
+                          value={titleDrafts[task.id] ?? task.title}
+                          onChange={(e) => setTitleDrafts((s) => ({ ...s, [task.id]: e.target.value }))}
+                          onClick={(e) => e.stopPropagation()}
+                          className="w-full text-base font-semibold p-1 rounded border border-border bg-background"
+                        />
+                      ) : (
+                        <h3 className="text-base font-semibold break-words max-w-full">{titleDrafts[task.id] ?? task.title}</h3>
+                      )}
+
+                      <div className="ml-2 flex items-center gap-1 flex-shrink-0">
+                        {editing[task.id] ? (
+                          <>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                // apply draft locally (no persistence yet)
+                                setEditing((s) => ({ ...s, [task.id]: false }));
+                              }}
+                              className="p-1 rounded text-muted-foreground hover:bg-primary/5"
+                              aria-label="Save title"
+                            >
+                              <Save className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setTitleDrafts((s) => ({ ...s, [task.id]: task.title }));
+                                setEditing((s) => ({ ...s, [task.id]: false }));
+                              }}
+                              className="p-1 rounded text-muted-foreground hover:bg-destructive/5"
+                              aria-label="Cancel edit"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </>
+                        ) : (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setEditing((s) => ({ ...s, [task.id]: true }));
+                              setTitleDrafts((s) => ({ ...s, [task.id]: task.title }));
+                            }}
+                            className="p-1 rounded text-muted-foreground hover:bg-primary/5"
+                            aria-label="Edit title"
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
                     <div className="flex flex-wrap items-center gap-2">
                       <Badge className={cn("text-xs border", getCategoryColor(task.category))}>
                         {task.category}
@@ -90,7 +171,7 @@ export const ListView = ({ tasks }: ListViewProps) => {
                     transition={{ duration: 0.2 }}
                     className="pt-3 border-t border-border"
                   >
-                    <p className="text-sm text-muted-foreground leading-relaxed">
+                    <p className="text-sm text-muted-foreground leading-relaxed break-words max-w-full">
                       {task.description}
                     </p>
                   </motion.div>

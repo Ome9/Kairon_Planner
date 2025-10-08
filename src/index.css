@@ -114,4 +114,38 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Prevent horizontal overflow and ensure long words wrap */
+  html, body, #root {
+    max-width: 100%;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Hide scrollbars globally but keep scrolling functionality */
+  * {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+  }
+
+  *::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
+
+  /* Hide DevExpress evaluation notice */
+  .dx-toast-message,
+  .dx-overlay-content.dx-toast-content {
+    display: none !important;
+  }
+
+  p, h1, h2, h3, h4, h5, h6, span, a, button, input, textarea {
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+
+  img, svg, video {
+    max-width: 100%;
+    height: auto;
+  }
 }

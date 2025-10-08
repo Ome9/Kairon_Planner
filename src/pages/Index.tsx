@@ -42,6 +42,10 @@ const Index = () => {
     setPlan(null);
   };
 
+  const handlePlanUpdate = (updatedPlan: ProjectPlan) => {
+    setPlan(updatedPlan);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -73,20 +77,24 @@ const Index = () => {
       </header>
 
       {/* Main Content */}
-      <main className="pt-20">
-        {!plan ? (
-          <HeroSection onGeneratePlan={handleGeneratePlan} isLoading={isLoading} />
-        ) : (
-          <PlanDisplay plan={plan} />
-        )}
+      <main className={!plan ? "relative" : "pt-20 relative"}>
+        <div className={!plan ? "" : "container mx-auto px-4"}>
+          {!plan ? (
+            <HeroSection onGeneratePlan={handleGeneratePlan} isLoading={isLoading} />
+          ) : (
+            <PlanDisplay plan={plan} onPlanUpdate={handlePlanUpdate} />
+          )}
+        </div>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-border py-8 mt-20">
-        <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          <p>Powered by Lovable AI • Built with ❤️ for productivity</p>
-        </div>
-      </footer>
+      {/* Footer - only show when plan is displayed */}
+      {plan && (
+        <footer className="border-t border-border py-8 mt-20">
+          <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
+            <p>Built with ❤️ for productivity • Powered by AI</p>
+          </div>
+        </footer>
+      )}
     </div>
   );
 };

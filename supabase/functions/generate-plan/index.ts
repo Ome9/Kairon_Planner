@@ -1,3 +1,5 @@
+// @ts-nocheck - This is a Deno Edge Function
+/// <reference types="https://deno.land/x/types/index.d.ts" />
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
@@ -20,9 +22,9 @@ serve(async (req) => {
       );
     }
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+    const AI_API_KEY = Deno.env.get("AI_API_KEY");
+    if (!AI_API_KEY) {
+      throw new Error("AI_API_KEY is not configured");
     }
 
     const systemPrompt = `You are Kairon, an expert project manager and strategic planner AI. Your primary function is to deconstruct a user's high-level goal into a complete, actionable, and logical project plan.
@@ -52,10 +54,13 @@ CRITICAL INSTRUCTIONS:
 4. Realistic Durations: The estimated_duration_hours must be a reasonable estimate for a single person or small team.
 5. ID Integrity: Task ids must be sequential integers starting from 1.`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    // Using OpenAI-compatible API endpoint
+    const API_ENDPOINT = Deno.env.get("AI_API_ENDPOINT") || "https://ai.gateway.lovable.dev/v1/chat/completions";
+    
+    const response = await fetch(API_ENDPOINT, {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${LOVABLE_API_KEY}`,
+        "Authorization": `Bearer ${AI_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
@@ -77,7 +82,7 @@ CRITICAL INSTRUCTIONS:
       }
       if (response.status === 402) {
         return new Response(
-          JSON.stringify({ error: "Payment required. Please add credits to your Lovable AI workspace." }),
+          JSON.stringify({ error: "Payment required. Please add credits to your AI workspace." }),
           { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
