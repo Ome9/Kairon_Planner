@@ -543,29 +543,6 @@ For questions or support, please open an issue on GitHub.
 
 ---
 
-**Made with ❤️ using React, TypeScript, and DevExtreme**
-│   ├── TaskDetailsModal.tsx         # Task details with tabs
-│   ├── PlanDisplay.tsx              # Main display with all views
-│   ├── ViewToggle.tsx               # 7-view selector
-│   ├── HeroSection.tsx              # Landing page
-│   ├── ui/                          # shadcn/ui components (40+)
-│   └── views/
-│       ├── ListView.tsx             # Expandable list
-│       ├── TimelineView.tsx         # Progress bars
-│       ├── KanbanView.tsx           # Original Kanban
-│       ├── AnalyticsView.tsx        # Charts
-│       ├── DataGridView.tsx         # NEW: Excel-like grid
-│       ├── KanbanBoardView.tsx      # NEW: Drag-drop Kanban
-│       ├── GanttView.tsx            # NEW: Timeline chart
-│       └── SchedulerView.tsx        # NEW: Calendar
-├── types/
-│   └── plan.ts                      # TypeScript interfaces
-└── integrations/
-    └── supabase/                    # Backend integration
-```
-
----
-
 ## 🎨 Theme
 
 - **Primary Color**: Purple (`#8b5cf6`)
