@@ -1,0 +1,16 @@
+{
+  "name": "kairon-planner-server",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node index.js",
+    "test": "node test-db.js"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "mongoose": "^8.19.1"
+  }
+}

@@ -2,15 +2,17 @@ import { motion } from "framer-motion";
 import { Task } from "@/types/plan";
 import { Card } from "../ui/card";
 import { Badge } from "../ui/badge";
+import { Checkbox } from "../ui/checkbox";
 import { Clock, GitBranch, ChevronDown, Pencil, Save, X } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 
 interface ListViewProps {
   tasks: Task[];
+  onTaskUpdate?: (taskId: number, updates: Partial<Task>) => void;
 }
 
-export const ListView = ({ tasks }: ListViewProps) => {
+export const ListView = ({ tasks, onTaskUpdate }: ListViewProps) => {
   const [expandedTasks, setExpandedTasks] = useState<Set<number>>(new Set());
   const [editing, setEditing] = useState<Record<number, boolean>>({});
   const [titleDrafts, setTitleDrafts] = useState<Record<number, string>>({});
@@ -78,11 +80,20 @@ export const ListView = ({ tasks }: ListViewProps) => {
             onClick={() => toggleTask(task.id)}
           >
             <div className="flex items-start gap-4">
+              <Checkbox
+                checked={task.completed || false}
+                onCheckedChange={(checked) => {
+                  onTaskUpdate?.(task.id, { completed: !!checked });
+                }}
+                onClick={(e) => e.stopPropagation()}
+                className="mt-1 flex-shrink-0"
+              />
+              
               <div className="flex-shrink-0 w-10 h-10 bg-gradient-primary flex items-center justify-center text-primary-foreground font-bold text-sm">
                 {task.id}
               </div>
 
-              <div className="flex-1 min-w-0">
+              <div className={cn("flex-1 min-w-0 transition-opacity", task.completed && "opacity-60")}>
                 <div className="flex items-start justify-between gap-4 mb-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-2">
@@ -103,7 +114,8 @@ export const ListView = ({ tasks }: ListViewProps) => {
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                // apply draft locally (no persistence yet)
+                                const newTitle = titleDrafts[task.id];
+                                onTaskUpdate?.(task.id, { title: newTitle });
                                 setEditing((s) => ({ ...s, [task.id]: false }));
                               }}
                               className="p-1 rounded text-muted-foreground hover:bg-primary/5"

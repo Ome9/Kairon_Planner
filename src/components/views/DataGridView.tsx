@@ -16,6 +16,7 @@ import DataGrid, {
   DataGridRef,
   RowDragging,
 } from "devextreme-react/data-grid";
+import type { InitNewRowEvent, RowInsertedEvent, RowUpdatedEvent, RowDraggingReorderEvent } from "devextreme/ui/data_grid";
 import { Workbook } from "exceljs";
 import { saveAs } from "file-saver-es";
 import { exportDataGrid as exportToPdf } from "devextreme/pdf_exporter";
@@ -26,6 +27,7 @@ import "jspdf-autotable";
 interface DataGridViewProps {
   tasks: Task[];
   onTaskAdd?: (task: Partial<Task>) => void;
+  onTaskUpdate?: (taskId: number, updates: Partial<Task>) => void;
 }
 
 export interface DataGridViewHandle {
@@ -35,7 +37,7 @@ export interface DataGridViewHandle {
 }
 
 export const DataGridView = forwardRef<DataGridViewHandle, DataGridViewProps>(
-  ({ tasks, onTaskAdd }, ref) => {
+  ({ tasks, onTaskAdd, onTaskUpdate }, ref) => {
     const gridRef = useRef<DataGridRef>(null);
     const [taskData, setTaskData] = useState<Task[]>(tasks);
 
@@ -91,14 +93,14 @@ export const DataGridView = forwardRef<DataGridViewHandle, DataGridViewProps>(
     }, []);
 
     // Handle row insertion with auto-ID
-    const onInitNewRow = useCallback((e: any) => {
+    const onInitNewRow = useCallback((e: InitNewRowEvent<Task, number>) => {
       e.data.id = getNextId();
       e.data.completed = false;
       e.data.dependencies = [];
       e.data.estimated_duration_hours = 1;
     }, [getNextId]);
 
-    const onRowInserted = useCallback((e: any) => {
+    const onRowInserted = useCallback((e: RowInsertedEvent<Task, number>) => {
       const newTask = e.data;
       console.log("New task added:", newTask);
       // Don't add to taskData here - DataGrid already handles it
@@ -106,10 +108,21 @@ export const DataGridView = forwardRef<DataGridViewHandle, DataGridViewProps>(
       onTaskAdd?.(newTask);
     }, [onTaskAdd]);
 
+    // Handle row updates
+    const onRowUpdated = useCallback((e: RowUpdatedEvent<Task, number>) => {
+      const updatedTask = e.data;
+      console.log("Task updated:", updatedTask);
+      // Notify parent component of the update
+      if (onTaskUpdate && updatedTask.id) {
+        onTaskUpdate(updatedTask.id, updatedTask);
+      }
+    }, [onTaskUpdate]);
+
     // Handle drag-and-drop reordering
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const onRowReorder = useCallback((e: any) => {
       const visibleRows = e.component.getVisibleRows();
-      const fromIndex = taskData.findIndex(task => task.id === e.itemData.id);
+      const fromIndex = taskData.findIndex((task: Task) => task.id === e.itemData.id);
       const toIndex = visibleRows[e.toIndex].dataIndex;
       
       const updatedTasks = [...taskData];
@@ -141,7 +154,7 @@ export const DataGridView = forwardRef<DataGridViewHandle, DataGridViewProps>(
       return colors[category] || "#6b7280";
     };
 
-    const categoryCellRender = (data: any) => {
+    const categoryCellRender = (data: { value: string }) => {
       const color = getCategoryColor(data.value);
       return (
         <div className="flex items-center gap-2">
@@ -154,7 +167,7 @@ export const DataGridView = forwardRef<DataGridViewHandle, DataGridViewProps>(
       );
     };
 
-    const dependencyCellRender = (data: any) => {
+    const dependencyCellRender = (data: { value: number[] }) => {
       const deps = data.value || [];
       if (deps.length === 0) return <span className="text-muted-foreground">None</span>;
       return (
@@ -334,6 +347,7 @@ export const DataGridView = forwardRef<DataGridViewHandle, DataGridViewProps>(
           columnResizingMode="widget"
           onInitNewRow={onInitNewRow}
           onRowInserted={onRowInserted}
+          onRowUpdated={onRowUpdated}
         >
           <RowDragging
             allowReordering

@@ -1,5 +1,5 @@
-import { useState, useCallback } from "react";
-import { Task } from "@/types/plan";
+import { useState, useCallback, useEffect } from "react";
+import { Task, TaskStatus } from "@/types/plan";
 import Sortable from "devextreme-react/sortable";
 import { Card } from "../ui/card";
 import { Badge } from "../ui/badge";
@@ -19,7 +19,7 @@ export const KanbanBoardView = ({ tasks, onTaskUpdate }: KanbanBoardViewProps) =
   const [editingId, setEditingId] = useState<number | null>(null);
   const [titleDrafts, setTitleDrafts] = useState<Record<number, string>>({});
   const [tasksByStatus, setTasksByStatus] = useState<Record<KanbanStatus, Task[]>>(() => {
-    // Group tasks by a pseudo-status based on category or ID range
+    // Group tasks by their actual status field
     const groups: Record<KanbanStatus, Task[]> = {
       "Not Started": [],
       "In Progress": [],
@@ -28,16 +28,60 @@ export const KanbanBoardView = ({ tasks, onTaskUpdate }: KanbanBoardViewProps) =
     };
 
     tasks.forEach((task) => {
-      // Distribute tasks across columns based on ID for demo
-      const mod = task.id % 4;
-      if (mod === 0) groups["Not Started"].push(task);
-      else if (mod === 1) groups["In Progress"].push(task);
-      else if (mod === 2) groups["Review"].push(task);
-      else groups["Completed"].push(task);
+      // Map task status to Kanban columns
+      const status = task.status;
+      if (!status || status === TaskStatus.BACKLOG || status === TaskStatus.TODO) {
+        groups["Not Started"].push(task);
+      } else if (status === TaskStatus.IN_PROGRESS) {
+        groups["In Progress"].push(task);
+      } else if (status === TaskStatus.IN_REVIEW) {
+        groups["Review"].push(task);
+      } else if (status === TaskStatus.DONE) {
+        groups["Completed"].push(task);
+      } else {
+        // Fallback: distribute by ID if status doesn't match
+        const mod = task.id % 4;
+        if (mod === 0) groups["Not Started"].push(task);
+        else if (mod === 1) groups["In Progress"].push(task);
+        else if (mod === 2) groups["Review"].push(task);
+        else groups["Completed"].push(task);
+      }
     });
 
     return groups;
   });
+
+  // Re-group tasks when tasks prop changes (e.g., when loading a saved plan)
+  useEffect(() => {
+    const groups: Record<KanbanStatus, Task[]> = {
+      "Not Started": [],
+      "In Progress": [],
+      "Review": [],
+      "Completed": [],
+    };
+
+    tasks.forEach((task) => {
+      const status = task.status;
+      if (!status || status === TaskStatus.BACKLOG || status === TaskStatus.TODO) {
+        groups["Not Started"].push(task);
+      } else if (status === TaskStatus.IN_PROGRESS) {
+        groups["In Progress"].push(task);
+      } else if (status === TaskStatus.IN_REVIEW) {
+        groups["Review"].push(task);
+      } else if (status === TaskStatus.DONE) {
+        groups["Completed"].push(task);
+      } else {
+        const mod = task.id % 4;
+        if (mod === 0) groups["Not Started"].push(task);
+        else if (mod === 1) groups["In Progress"].push(task);
+        else if (mod === 2) groups["Review"].push(task);
+        else groups["Completed"].push(task);
+      }
+    });
+
+    setTasksByStatus(groups);
+  }, [tasks]);
+
 
   const statuses: KanbanStatus[] = ["Not Started", "In Progress", "Review", "Completed"];
 
@@ -83,8 +127,22 @@ export const KanbanBoardView = ({ tasks, onTaskUpdate }: KanbanBoardViewProps) =
   };
 
   const handleSave = (taskId: number) => {
-    console.log("Saving task:", taskId, titleDrafts[taskId]);
-    onTaskUpdate?.(taskId, { title: titleDrafts[taskId] });
+    const newTitle = titleDrafts[taskId];
+    console.log("Saving task:", taskId, newTitle);
+    
+    // Update local state immediately
+    setTasksByStatus((prev) => {
+      const newState = { ...prev };
+      Object.keys(newState).forEach((status) => {
+        newState[status as KanbanStatus] = newState[status as KanbanStatus].map((task) =>
+          task.id === taskId ? { ...task, title: newTitle } : task
+        );
+      });
+      return newState;
+    });
+    
+    // Notify parent
+    onTaskUpdate?.(taskId, { title: newTitle });
     setEditingId(null);
   };
 
@@ -94,13 +152,28 @@ export const KanbanBoardView = ({ tasks, onTaskUpdate }: KanbanBoardViewProps) =
     setTitleDrafts(rest);
   };
 
-  const onDragStart = useCallback((e: any) => {
-    e.itemData = e.fromData[e.fromIndex];
+  interface DragEvent {
+    fromData?: Task[];
+    fromIndex?: number;
+    itemData?: Task;
+  }
+
+  interface AddEvent {
+    itemData?: Task;
+    toIndex?: number;
+  }
+
+  const onDragStart = useCallback((e: DragEvent) => {
+    if (e.fromData && typeof e.fromIndex === 'number') {
+      e.itemData = e.fromData[e.fromIndex];
+    }
   }, []);
 
-  const onAdd = useCallback((e: any, toStatus: KanbanStatus) => {
+  const onAdd = useCallback((e: AddEvent, toStatus: KanbanStatus) => {
     const newTasksByStatus = { ...tasksByStatus };
     const task = e.itemData;
+    
+    if (!task) return;
     
     // Remove from old status
     Object.keys(newTasksByStatus).forEach((status) => {
@@ -110,23 +183,61 @@ export const KanbanBoardView = ({ tasks, onTaskUpdate }: KanbanBoardViewProps) =
     });
 
     // Add to new status
-    newTasksByStatus[toStatus].splice(e.toIndex, 0, task);
+    newTasksByStatus[toStatus].splice(e.toIndex ?? 0, 0, task);
     setTasksByStatus(newTasksByStatus);
     
     console.log(`Task ${task.id} moved to ${toStatus}`);
-  }, [tasksByStatus]);
+    
+    // Update the task status and notify parent component
+    if (onTaskUpdate) {
+      const statusMap: Record<KanbanStatus, TaskStatus> = {
+        "Not Started": TaskStatus.BACKLOG,
+        "In Progress": TaskStatus.IN_PROGRESS,
+        "Review": TaskStatus.IN_REVIEW,
+        "Completed": TaskStatus.DONE,
+      };
+      
+      onTaskUpdate(task.id, { 
+        status: statusMap[toStatus]
+      });
+    }
+  }, [tasksByStatus, onTaskUpdate]);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 auto-rows-max">
-      {statuses.map((status) => {
-        const statusTasks = tasksByStatus[status];
-        const totalHours = statusTasks.reduce((sum, t) => sum + t.estimated_duration_hours, 0);
+    <div className="w-full space-y-2">
+      {/* Top Scrollbar - Synced with main content */}
+      <div className="w-full overflow-x-auto overflow-y-hidden" style={{
+        scrollbarWidth: 'thin',
+        scrollbarColor: 'hsl(var(--primary)) hsl(var(--muted))'
+      }} onScroll={(e) => {
+        const mainScroll = e.currentTarget.nextElementSibling as HTMLElement;
+        if (mainScroll) mainScroll.scrollLeft = e.currentTarget.scrollLeft;
+      }}>
+        <div className="min-w-[900px] h-3 bg-muted/30 rounded-full">
+          <div className="h-full bg-primary/20 rounded-full" style={{ width: "100%" }} />
+        </div>
+      </div>
+      
+      {/* Main Kanban Board */}
+      <div className="w-full overflow-x-auto pb-2" style={{
+        scrollbarWidth: 'thin',
+        scrollbarColor: 'hsl(var(--primary)) hsl(var(--muted))'
+      }} onScroll={(e) => {
+        const topScroll = e.currentTarget.previousElementSibling as HTMLElement;
+        const bottomScroll = e.currentTarget.nextElementSibling as HTMLElement;
+        if (topScroll) topScroll.scrollLeft = e.currentTarget.scrollLeft;
+        if (bottomScroll) bottomScroll.scrollLeft = e.currentTarget.scrollLeft;
+      }}>
+        <div className="grid grid-cols-4 gap-2 min-w-[900px] auto-rows-max">
+          {statuses.map((status) => {
+            const statusTasks = tasksByStatus[status];
+            const totalHours = statusTasks.reduce((sum, t) => sum + t.estimated_duration_hours, 0);
 
         return (
           <div key={status} className="flex flex-col h-fit min-h-[400px]">
-            <div className={cn("border-l-4 pl-4 mb-4", getStatusColor(status))}>
+            <div className={cn("border-l-4 pl-3 mb-3", getStatusColor(status))}>
               <div className="flex items-center justify-between mb-1">
-                <h3 className="font-bold text-sm uppercase tracking-wide">{status}</h3>
+                <h3 className="font-bold text-xs uppercase tracking-wide">{status}</h3>
                 <Badge className={cn("text-xs", getStatusBadgeColor(status))}>
                   {statusTasks.length}
                 </Badge>
@@ -137,7 +248,7 @@ export const KanbanBoardView = ({ tasks, onTaskUpdate }: KanbanBoardViewProps) =
             </div>
 
             <Sortable
-              className="space-y-3 flex-1"
+              className="space-y-2 flex-1"
               group="tasks"
               data={statusTasks}
               onDragStart={onDragStart}
@@ -147,13 +258,13 @@ export const KanbanBoardView = ({ tasks, onTaskUpdate }: KanbanBoardViewProps) =
                 <Card
                   key={task.id}
                   className={cn(
-                    "p-4 border-l-2 cursor-move hover:shadow-elevated transition-all",
+                    "p-3 border-l-2 cursor-move hover:shadow-elevated transition-all",
                     getCategoryColor(task.category)
                   )}
                 >
-                  <div className="flex items-start gap-2 mb-3">
-                    <GripVertical className="w-4 h-4 text-muted-foreground mt-1 flex-shrink-0" />
-                    <div className="w-6 h-6 bg-gradient-primary flex items-center justify-center text-primary-foreground font-bold text-xs flex-shrink-0 rounded">
+                  <div className="flex items-start gap-2 mb-2">
+                    <GripVertical className="w-3 h-3 text-muted-foreground mt-1 flex-shrink-0" />
+                    <div className="w-5 h-5 bg-gradient-primary flex items-center justify-center text-primary-foreground font-bold text-[10px] flex-shrink-0 rounded">
                       {task.id}
                     </div>
                     {editingId === task.id ? (
@@ -163,12 +274,12 @@ export const KanbanBoardView = ({ tasks, onTaskUpdate }: KanbanBoardViewProps) =
                           onChange={(e) =>
                             setTitleDrafts({ ...titleDrafts, [task.id]: e.target.value })
                           }
-                          className="h-7 text-sm"
+                          className="h-6 text-xs"
                         />
                         <Button
                           size="icon"
                           variant="ghost"
-                          className="h-6 w-6"
+                          className="h-5 w-5"
                           onClick={() => handleSave(task.id)}
                         >
                           <Check className="h-3 w-3" />
@@ -176,7 +287,7 @@ export const KanbanBoardView = ({ tasks, onTaskUpdate }: KanbanBoardViewProps) =
                         <Button
                           size="icon"
                           variant="ghost"
-                          className="h-6 w-6"
+                          className="h-5 w-5"
                           onClick={() => handleCancel(task.id)}
                         >
                           <X className="h-3 w-3" />
@@ -184,13 +295,13 @@ export const KanbanBoardView = ({ tasks, onTaskUpdate }: KanbanBoardViewProps) =
                       </div>
                     ) : (
                       <div className="flex-1 flex items-start justify-between gap-2">
-                        <h4 className="text-sm font-semibold break-words max-w-full">
+                        <h4 className="text-xs font-semibold break-words max-w-full leading-tight">
                           {task.title}
                         </h4>
                         <Button
                           size="icon"
                           variant="ghost"
-                          className="h-6 w-6 flex-shrink-0"
+                          className="h-5 w-5 flex-shrink-0"
                           onClick={() => handleEdit(task)}
                         >
                           <Pencil className="h-3 w-3" />
@@ -199,15 +310,15 @@ export const KanbanBoardView = ({ tasks, onTaskUpdate }: KanbanBoardViewProps) =
                     )}
                   </div>
 
-                  <p className="text-xs text-muted-foreground mb-3 line-clamp-2 break-words">
+                  <p className="text-[11px] text-muted-foreground mb-2 line-clamp-2 break-words leading-tight">
                     {task.description}
                   </p>
 
                   <div className="flex items-center justify-between">
-                    <Badge variant="outline" className="text-xs">
+                    <Badge variant="outline" className="text-[10px] py-0 px-1.5">
                       {task.category}
                     </Badge>
-                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
                       <div className="flex items-center gap-1">
                         <Clock className="w-3 h-3" />
                         <span>{task.estimated_duration_hours}h</span>
@@ -226,6 +337,21 @@ export const KanbanBoardView = ({ tasks, onTaskUpdate }: KanbanBoardViewProps) =
           </div>
         );
       })}
+        </div>
+      </div>
+      
+      {/* Bottom Scrollbar - Synced with main content */}
+      <div className="w-full overflow-x-auto overflow-y-hidden" style={{
+        scrollbarWidth: 'thin',
+        scrollbarColor: 'hsl(var(--primary)) hsl(var(--muted))'
+      }} onScroll={(e) => {
+        const mainScroll = e.currentTarget.previousElementSibling as HTMLElement;
+        if (mainScroll) mainScroll.scrollLeft = e.currentTarget.scrollLeft;
+      }}>
+        <div className="min-w-[900px] h-3 bg-muted/30 rounded-full">
+          <div className="h-full bg-primary/20 rounded-full" style={{ width: "100%" }} />
+        </div>
+      </div>
     </div>
   );
 };

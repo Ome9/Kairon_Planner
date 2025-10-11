@@ -26,12 +26,25 @@ export const SchedulerView = ({ tasks }: SchedulerViewProps) => {
   // Transform tasks into scheduler appointments
   const appointments = useMemo(() => {
     return tasks.map((task, index) => {
-      const startDate = new Date();
-      startDate.setDate(startDate.getDate() + index); // Each task starts on a different day
-      startDate.setHours(9, 0, 0, 0); // Start at 9 AM
-
-      const endDate = new Date(startDate);
-      endDate.setHours(startDate.getHours() + Math.min(task.estimated_duration_hours, 8)); // Max 8 hours per day
+      // Use task dates if available
+      let startDate: Date;
+      let endDate: Date;
+      
+      if (task.start_date && task.end_date) {
+        startDate = new Date(task.start_date);
+        endDate = new Date(task.end_date);
+      } else if (task.start_date) {
+        startDate = new Date(task.start_date);
+        endDate = new Date(startDate);
+        endDate.setHours(startDate.getHours() + Math.min(task.estimated_duration_hours, 8));
+      } else {
+        // Fallback: spread across days
+        startDate = new Date();
+        startDate.setDate(startDate.getDate() + index);
+        startDate.setHours(9, 0, 0, 0);
+        endDate = new Date(startDate);
+        endDate.setHours(startDate.getHours() + Math.min(task.estimated_duration_hours, 8));
+      }
 
       return {
         text: task.title,
@@ -39,6 +52,9 @@ export const SchedulerView = ({ tasks }: SchedulerViewProps) => {
         startDate,
         endDate,
         allDay: task.estimated_duration_hours >= 8,
+        disabled: task.completed, // Mark as disabled if completed
+        color: task.completed ? "#10b981" : getCategoryColor(task.category), // Green for completed
+        completed: task.completed,
       };
     });
   }, [tasks]);
@@ -133,6 +149,22 @@ export const SchedulerView = ({ tasks }: SchedulerViewProps) => {
         .dx-scheduler-agenda-date {
           color: hsl(263 70% 60%) !important;
         }
+        /* Completed task styling */
+        .dx-scheduler-appointment[title*="✓"],
+        .dx-scheduler-appointment.completed {
+          opacity: 0.75;
+          background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+          border-left: 4px solid #047857 !important;
+        }
+        .dx-scheduler-appointment.completed::after {
+          content: "✓";
+          position: absolute;
+          top: 2px;
+          right: 4px;
+          font-size: 14px;
+          font-weight: bold;
+          color: white;
+        }
       `}</style>
       <Scheduler
         dataSource={appointments}
@@ -141,6 +173,31 @@ export const SchedulerView = ({ tasks }: SchedulerViewProps) => {
         height="100%"
         startDayHour={8}
         endDayHour={20}
+        appointmentRender={(data) => {
+          const isCompleted = data.appointmentData.completed;
+          return (
+            <div 
+              className={isCompleted ? "completed" : ""}
+              style={{
+                background: data.appointmentData.color,
+                borderRadius: '4px',
+                padding: '4px 8px',
+                height: '100%',
+                overflow: 'hidden',
+                position: 'relative',
+              }}
+            >
+              <div style={{ fontWeight: 'bold', fontSize: '12px' }}>
+                {isCompleted && '✓ '}{data.appointmentData.text}
+              </div>
+              {isCompleted && (
+                <div style={{ fontSize: '10px', opacity: 0.8, marginTop: '2px' }}>
+                  Completed
+                </div>
+              )}
+            </div>
+          );
+        }}
         showAllDayPanel={true}
         textExpr="text"
         startDateExpr="startDate"

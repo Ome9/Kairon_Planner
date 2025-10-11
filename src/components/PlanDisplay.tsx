@@ -276,7 +276,7 @@ export const PlanDisplay = ({ plan, onPlanUpdate }: PlanDisplayProps) => {
       >
         <div className="bg-background p-4 rounded-lg border border-border">
           <DevExtremeProvider>
-            {currentView === "list" && <ListView tasks={filteredTasks} />}
+            {currentView === "list" && <ListView tasks={filteredTasks} onTaskUpdate={handleTaskUpdate} />}
             {currentView === "timeline" && <TimelineView tasks={filteredTasks} />}
             {currentView === "kanban" && (
               <KanbanView 
@@ -286,14 +286,12 @@ export const PlanDisplay = ({ plan, onPlanUpdate }: PlanDisplayProps) => {
               />
             )}
             {currentView === "analytics" && <AnalyticsView tasks={plan.tasks} projectName={plan.projectName} />}
-            {currentView === "datagrid" && <DataGridView ref={dataGridRef} tasks={filteredTasks} onTaskAdd={handleTaskAdd} />}
+            {currentView === "datagrid" && <DataGridView ref={dataGridRef} tasks={filteredTasks} onTaskAdd={handleTaskAdd} onTaskUpdate={handleTaskUpdate} />}
             {currentView === "gantt" && (
               <GanttView 
                 ref={ganttRef} 
                 tasks={filteredTasks}
                 onTaskUpdate={handleTaskUpdate}
-                onTaskAdd={handleTaskAdd}
-                onTaskDelete={handleTaskDelete}
               />
             )}
             {currentView === "scheduler" && <SchedulerView tasks={filteredTasks} />}

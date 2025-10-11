@@ -7,14 +7,21 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependencies
 node_modules
+.pnp
+.pnp.js
+
+# Build output
 dist
 dist-ssr
+build
 *.local
 
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
+!.vscode/settings.json
 .idea
 .DS_Store
 *.suo
@@ -24,33 +31,45 @@ dist-ssr
 *.sw?
 
 # Environment variables
-*.env
+.env
+.env.*
+!.env.example
 *.env.local
 *.env.development.local
 *.env.test.local
 *.env.production.local
-.env
 
 # Reference/Inspiration folders (not needed in production)
 Refrence/
 Reference/
 references/
+docs/old/
+backup/
 
-# Lock files (keep only one)
+# Lock files (keep bun.lockb, ignore others)
 package-lock.json
 yarn.lock
+pnpm-lock.yaml
 
 # Build artifacts
 *.tsbuildinfo
+.turbo
 
 # Temporary files
 *.tmp
 *.temp
 .cache
+.parcel-cache
 
 # OS specific
 Thumbs.db
 .DS_Store
+desktop.ini
+
+# Testing
+coverage
+.nyc_output
+*.lcov
 
 # Documentation (consolidated into README.md)
 QUICK_START.md
@@ -65,3 +84,15 @@ DATAGRID_BEAMS_FIXES.md
 CONTRAST_FIXES.md
 SCHEDULER_FIX.md
 WX_GANTT_INTEGRATION.md
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Supabase
+.supabase/
+
+# Debug
+debug.log
+.vscode/launch.json

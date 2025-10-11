@@ -15,6 +15,11 @@ export interface Task {
   dependencies: number[];
   completed?: boolean;
   status?: TaskStatus; // Kanban status column
+  start_date?: string;
+  end_date?: string;
+  progress?: number;
+  assignee?: string;
+  priority?: string;
 }
 
 export interface ProjectPlan {

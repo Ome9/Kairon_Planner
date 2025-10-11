@@ -1,103 +1,584 @@
-# Kairon Planner - AI-Powered Task Planning
+# Kairon Planner 🚀
 
-🚀 **An intelligent task planning application with AI-powered plan generation and DevExtreme React components**
+> **AI-Powered Project Planning Application with MongoDB Backend & Authentication**
 
 ![Version](https://img.shields.io/badge/version-1.0.0-blue)
 ![React](https://img.shields.io/badge/React-18.3.1-61dafb)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.8.3-blue)
+![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-green)
 ![License](https://img.shields.io/badge/license-MIT-green)
+
+An intelligent task planning application featuring AI-powered plan generation, MongoDB persistence, user authentication, auto-save functionality, and 7 powerful visualization views including DataGrid, Gantt, and Scheduler.
 
 ---
 
 ## 📋 Table of Contents
 
 - [Features](#-features)
-- [Tech Stack](#-tech-stack)
+- [Tech Stack](#️-tech-stack)
 - [Quick Start](#-quick-start)
-- [Usage Guide](#-usage-guide)
-- [Project Structure](#-project-structure)
-- [Views Documentation](#-views-documentation)
+- [Authentication](#-authentication)
+- [Database Setup](#-database-setup)
+- [API Reference](#-api-reference)
+- [Views & Features](#-views--features)
 - [Development](#-development)
+- [Project Structure](#-project-structure)
 - [Deployment](#-deployment)
-- [Contributing](#-contributing)
 
 ---
 
 ## ✨ Features
 
-### 📊 **7 Powerful Views**
+### 🔐 **User Authentication**
+- ✅ **MongoDB-Based Auth** - Secure user registration and login
+- ✅ **JWT Tokens** - 7-day token expiry with secure signing
+- ✅ **Password Hashing** - bcrypt with salt rounds 10
+- ✅ **Profile Management** - User dropdown with logout functionality
+- ✅ **Auto-Login Prevention** - Signup redirects to login page for credential verification
 
+### 💾 **Auto-Save & Data Persistence**
+- ✅ **Auto-Save** - Saves plan changes every 60 seconds automatically
+- ✅ **Manual Save Button** - Save immediately with visual feedback (Save Changes/Saving.../Saved)
+- ✅ **Smart Save Logic** - Creates new plans on first save, updates existing plans thereafter
+- ✅ **Change Tracking** - Tracks unsaved changes with visual indicators
+- ✅ **MongoDB Storage** - All data persisted to MongoDB Atlas (`kairon_planner` database)
+
+### 📊 **7 Powerful Views**
 1. **List View** - Expandable accordion with edit controls
 2. **Timeline View** - Progress bars with colored categories
-3. **Board View** - Drag-and-drop Kanban workflow (react-beautiful-dnd)
-4. **Analytics View** - Charts and statistics
+3. **Kanban Board** - Drag-and-drop workflow (5 columns: Backlog, To Do, In Progress, In Review, Done)
+4. **Analytics View** - Charts and statistics with insights
 5. **DataGrid View** ⚡ - Excel-like grid with search, filters, export (PDF/Excel)
 6. **Gantt View** 🗓️ - Interactive timeline with dependencies
 7. **Scheduler View** 📅 - Calendar with drag-drop scheduling
 
-### 🎯 **Key Capabilities**
-
-- ✅ **AI-Powered Plan Generation** - Generate project plans from goals using Supabase Edge Functions
-- ✅ **Drag & Drop** - Reorganize tasks across Kanban columns with visual feedback
-- ✅ **Inline Editing** - Edit tasks directly in grid/kanban views
-- ✅ **Advanced Filtering** - Search, sort, filter by any field
+### 🎯 **Core Capabilities**
+- ✅ **AI Plan Generation** - Generate project plans from natural language goals
+- ✅ **User-Specific Data** - Plans filtered by authenticated user
+- ✅ **Saved Plans Page** - View, search, filter, and load all your saved plans
+- ✅ **Task Management** - Full CRUD operations across all views
 - ✅ **Export Options** - PDF, Excel, JSON formats
-- ✅ **Timeline Visualization** - Gantt chart with task dependencies
-- ✅ **Calendar Scheduling** - Day/Week/Month views with drag-drop
-- ✅ **Task Management** - Full CRUD operations with modal interface
-- ✅ **Category Colors** - Visual organization with 10 distinct colors
 - ✅ **Responsive Design** - Works on desktop, tablet, mobile
-- ✅ **Dark Theme** - DevExtreme dark theme with Tailwind integration
-- ✅ **Modern UI** - Beautiful effects with Framer Motion and Anime.js
+- ✅ **Dark Theme** - Beautiful dark UI with Tailwind + DevExtreme
+- ✅ **Smooth Animations** - Framer Motion + Anime.js effects
 
 ---
 
 ## 🛠️ Tech Stack
 
-### Core Technologies
+### Frontend
 - **React 18.3.1** - Modern React with hooks
 - **TypeScript 5.8.3** - Type-safe development
 - **Vite 7.1.9** - Lightning-fast build tool
-- **Bun** - Fast package manager and runtime
-
-### UI Libraries
-- **DevExtreme React** - Enterprise-grade UI components
-  - DataGrid (Excel-like grid)
-  - Gantt (Timeline chart)
-  - Scheduler (Calendar)
-- **shadcn/ui** - Beautiful, accessible Tailwind components (40+)
-- **Tailwind CSS 3.4.1** - Utility-first CSS framework
+- **React Router** - Navigation & routing
+- **Axios** - HTTP client with token interceptors
+- **shadcn/ui** - 40+ accessible Tailwind components
+- **Tailwind CSS 3.4.1** - Utility-first styling
+- **DevExtreme React** - Enterprise DataGrid, Gantt, Scheduler
 - **Framer Motion** - Smooth animations
 - **Anime.js** - Advanced micro-interactions
 
-### State & Data
-- **Supabase** - Backend, database, and AI gateway
-- **react-beautiful-dnd** - Drag-and-drop for Kanban
-- **Lucide React** - Modern icon library
+### Backend
+- **Node.js** + **Express 5.1.0** - REST API server
+- **MongoDB Atlas** - Cloud NoSQL database
+- **Mongoose 8.19.1** - ODM for schema modeling
+- **bcryptjs** - Password hashing
+- **jsonwebtoken** - JWT authentication
+- **cookie-parser** - Cookie handling
 
-### Export & Utilities
-- **jsPDF** - PDF generation
-- **ExcelJS** - Excel export
-- **date-fns** - Date manipulation
-- **recharts** - Charts for analytics
+### Database Collections
+- **users** - User accounts with hashed passwords
+- **plans** - Project plans with tasks
+- **userpreferences** - User settings and preferences
 
 ---
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-
-- **Node.js 18+** or **Bun** installed
-- Modern web browser (Chrome, Firefox, Safari, Edge)
+- **Node.js 18+** or **Bun**
+- **MongoDB Atlas Account** (connection string in `.env`)
+- Modern web browser
 
 ### Installation
 
 ```bash
 # Clone the repository
-git clone <YOUR_GIT_URL>
-cd kairon-planner
+git clone <your-repo-url>
+cd Kairon_Planner
 
-# Install dependencies (using bun)
+# Install dependencies
+npm install
+
+# Ensure .env file exists with required variables
+# (Already configured with MongoDB Atlas connection)
+```
+
+### Running the Application
+
+**Option 1: Run Both Frontend & Backend (Recommended)**
+```bash
+npm run dev:full
+```
+
+This starts:
+- ✅ **Frontend**: http://localhost:8080
+- ✅ **Backend**: http://localhost:3001
+
+**Option 2: Run Separately**
+
+Terminal 1 - Backend:
+```bash
+cd server
+npm run dev
+```
+
+Terminal 2 - Frontend:
+```bash
+npm run dev
+```
+
+### First Time Setup
+
+1. **Start the application** using one of the methods above
+2. **Navigate to** http://localhost:8080
+3. **Click "Sign Up"** to create your account
+4. **Fill in the form**:
+   - Name: Your full name
+   - Email: Your email address
+   - Password: At least 6 characters
+5. **After signup**, you'll be redirected to the login page
+6. **Login** with your credentials
+7. **Generate your first plan** by entering a project goal!
+
+---
+
+## 🔐 Authentication
+
+### User Registration Flow
+1. User fills signup form (name, email, password)
+2. Backend hashes password with bcrypt
+3. User document created in MongoDB `users` collection
+4. Success message displayed
+5. Redirected to login page
+6. User logs in with credentials
+
+### Login Flow
+1. User enters email and password
+2. Backend validates credentials against MongoDB
+3. JWT token generated (7-day expiry)
+4. Token stored in localStorage
+5. User redirected to main app
+6. Profile header displays user info
+
+### Protected Routes
+- All API requests automatically include JWT token (axios interceptor)
+- Backend validates token on protected endpoints
+- Invalid/expired tokens result in 401 Unauthorized
+
+### Profile Features
+- **Avatar with Initials** - Shows user's name initials
+- **Dropdown Menu**:
+  - Profile (user name + email)
+  - Settings
+  - Logout button
+
+---
+
+## � Database Setup
+
+### MongoDB Atlas Configuration
+
+The application connects to MongoDB Atlas with the connection string in `.env`:
+
+```env
+MONGODB_URI="mongodb+srv://username:password@cluster0.fv4seiu.mongodb.net/kairon_planner?retryWrites=true&w=majority"
+JWT_SECRET="your-secret-key-here"
+```
+
+### Collections Schema
+
+#### Users Collection
+```javascript
+{
+  _id: ObjectId,
+  email: String (unique, required),
+  name: String (required),
+  password: String (hashed, required, select: false),
+  supabaseId: String,
+  preferences: {
+    theme: String,
+    notifications: Boolean,
+    // ...
+  },
+  stats: {
+    totalPlans: Number,
+    completedPlans: Number,
+    // ...
+  },
+  createdAt: Date,
+  updatedAt: Date,
+  lastLoginAt: Date
+}
+```
+
+#### Plans Collection
+```javascript
+{
+  _id: ObjectId,
+  userId: String (required, indexed),
+  projectName: String (required),
+  projectSummary: String (required),
+  goalText: String,
+  tasks: [
+    {
+      id: Number,
+      title: String,
+      description: String,
+      category: String,
+      status: String,
+      estimated_duration_hours: Number,
+      dependencies: [Number],
+      start_date: Date,
+      end_date: Date,
+      progress: Number,
+      assignee: String,
+      priority: String
+    }
+  ],
+  status: String, // 'active', 'completed', 'archived'
+  tags: [String],
+  color: String,
+  isStarred: Boolean,
+  createdAt: Date,
+  updatedAt: Date
+}
+```
+
+### Viewing Your Data in MongoDB Atlas
+
+1. Go to https://cloud.mongodb.com/
+2. Navigate to your cluster → Browse Collections
+3. Select database: **`kairon_planner`** (NOT `test`)
+4. View collections:
+   - **users** - Your registered user accounts
+   - **plans** - All saved project plans
+   - **userpreferences** - User settings
+
+---
+
+## 📡 API Reference
+
+Base URL: `http://localhost:3001/api`
+
+### Authentication Endpoints
+
+```typescript
+// Sign up new user
+POST /auth/signup
+Body: { name: string, email: string, password: string }
+Returns: { success: boolean, data: { user, token } }
+
+// Login user
+POST /auth/login
+Body: { email: string, password: string }
+Returns: { success: boolean, data: { user, token } }
+
+// Get current user (requires token)
+GET /auth/me
+Headers: { Authorization: "Bearer <token>" }
+Returns: { success: boolean, data: User }
+
+// Update profile
+PATCH /auth/profile
+Body: { name?: string, email?: string, preferences?: object }
+Returns: { success: boolean, data: User }
+
+// Logout
+POST /auth/logout
+Returns: { success: boolean }
+```
+
+### Plans Endpoints
+
+```typescript
+// Get all user's plans
+GET /plans/user/:userId
+Query: ?status=active&starred=true&sortBy=updatedAt&order=desc
+Returns: { success: boolean, data: Plan[] }
+
+// Get single plan
+GET /plans/:planId
+Returns: { success: boolean, data: Plan }
+
+// Create new plan
+POST /plans
+Body: { userId, projectName, projectSummary, tasks, status, tags, color }
+Returns: { success: boolean, data: Plan }
+
+// Update plan
+PUT /plans/:planId
+Body: { projectName, projectSummary, tasks, status }
+Returns: { success: boolean, data: Plan }
+
+// Toggle star
+PATCH /plans/:planId/star
+Returns: { success: boolean, data: Plan }
+
+// Delete plan
+DELETE /plans/:planId
+Returns: { success: boolean, message: string }
+
+// Duplicate plan
+POST /plans/:planId/duplicate
+Returns: { success: boolean, data: Plan }
+```
+
+---
+
+## 🎨 Views & Features
+
+### 1. List View
+- Expandable accordion for each task
+- Edit task details inline
+- Color-coded categories
+- Duration and dependency display
+
+### 2. Timeline View
+- Horizontal progress bars
+- Color-coded by category
+- Percentage completion
+- Visual task organization
+
+### 3. Kanban Board View
+- **5 Columns**: Backlog → To Do → In Progress → In Review → Done
+- **Drag & Drop**: Move tasks between columns
+- **Visual Feedback**: Animations on drag operations
+- **Status Auto-Update**: Status changes when moved
+- **Auto-Save**: Changes saved automatically
+
+### 4. Analytics View
+- Task distribution by category (pie chart)
+- Status breakdown (bar chart)
+- Total hours estimate
+- Completion percentage
+- Key insights and statistics
+
+### 5. DataGrid View (DevExtreme)
+- **Excel-like Interface**: Sortable columns, row selection
+- **Search & Filter**: Global search + column filters
+- **Inline Editing**: Edit cells directly
+- **Export**: PDF and Excel export
+- **Column Chooser**: Show/hide columns
+- **Responsive**: Adapts to screen size
+
+### 6. Gantt View (DevExtreme)
+- **Timeline Visualization**: Tasks on calendar
+- **Dependencies**: Link tasks together
+- **Drag to Reschedule**: Move tasks on timeline
+- **Zoom Levels**: Day/Week/Month views
+- **Progress Tracking**: Visual completion bars
+- **Export**: PDF export
+
+### 7. Scheduler View (DevExtreme)
+- **Calendar Interface**: Day/Week/Month views
+- **Drag & Drop**: Schedule and reschedule tasks
+- **Time Slots**: Hourly scheduling
+- **Task Details**: Full task info on hover
+- **Color Coding**: By category
+
+---
+
+## 🔧 Development
+
+### Project Structure
+
+```
+Kairon_Planner/
+├── src/                          # Frontend source
+│   ├── components/
+│   │   ├── HeroSection.tsx       # Landing page hero
+│   │   ├── PlanDisplay.tsx       # Main plan viewer
+│   │   ├── ProfileHeader.tsx     # User profile dropdown
+│   │   ├── ViewToggle.tsx        # View switcher
+│   │   ├── ui/                   # shadcn/ui components (40+)
+│   │   └── views/
+│   │       ├── ListView.tsx      # Accordion view
+│   │       ├── TimelineView.tsx  # Progress bars
+│   │       ├── KanbanBoardView.tsx  # Kanban board
+│   │       ├── AnalyticsView.tsx # Charts & stats
+│   │       ├── DataGridView.tsx  # DevExtreme grid
+│   │       ├── GanttView.tsx     # DevExtreme gantt
+│   │       └── SchedulerView.tsx # DevExtreme scheduler
+│   ├── pages/
+│   │   ├── Welcome.tsx           # Landing page
+│   │   ├── Login.tsx             # Login page
+│   │   ├── SignUp.tsx            # Signup page
+│   │   ├── Index.tsx             # Main app with auto-save
+│   │   └── SavedPlans.tsx        # Saved plans gallery
+│   ├── contexts/
+│   │   └── AuthContext.tsx       # Authentication state
+│   ├── hooks/
+│   │   └── useAuth.ts            # Auth hook
+│   ├── lib/
+│   │   ├── api.ts                # API client with token interceptor
+│   │   └── utils.ts              # Utility functions
+│   └── types/
+│       └── plan.ts               # TypeScript interfaces
+│
+├── server/                       # Backend source
+│   ├── models/
+│   │   ├── User.js               # User schema with bcrypt
+│   │   ├── Plan.js               # Plan schema
+│   │   └── UserPreferences.js    # Preferences schema
+│   ├── routes/
+│   │   ├── auth.js               # Authentication routes
+│   │   ├── plans.js              # Plans CRUD routes
+│   │   └── userPreferences.js    # Preferences routes
+│   ├── config/
+│   │   └── database.js           # MongoDB connection
+│   └── index.js                  # Express server
+│
+├── supabase/functions/           # Supabase Edge Functions
+│   └── generate-plan/
+│       └── index.ts              # AI plan generation
+│
+├── .env                          # Environment variables
+├── package.json                  # Dependencies & scripts
+├── vite.config.ts                # Vite configuration
+├── tailwind.config.ts            # Tailwind configuration
+└── tsconfig.json                 # TypeScript configuration
+```
+
+### Available Scripts
+
+```bash
+# Frontend Development
+npm run dev              # Start Vite dev server (port 8080)
+npm run build            # Build for production
+npm run preview          # Preview production build
+
+# Backend Development
+npm run server           # Start Express server (port 3001)
+cd server && npm run dev # Start with nodemon
+
+# Full Stack
+npm run dev:full         # Start both frontend and backend
+
+# Testing
+npm run test:db          # Test MongoDB connection
+```
+
+### Environment Variables
+
+```env
+# Supabase (AI Functions)
+VITE_SUPABASE_PROJECT_ID="your-project-id"
+VITE_SUPABASE_PUBLISHABLE_KEY="your-public-key"
+VITE_SUPABASE_URL="https://your-project.supabase.co"
+
+# MongoDB
+MONGODB_URI="mongodb+srv://user:pass@cluster.mongodb.net/kairon_planner"
+
+# JWT Authentication
+JWT_SECRET="your-secret-key-change-in-production"
+
+# API Configuration
+VITE_API_URL="http://localhost:3001/api"
+```
+
+### Adding New Features
+
+1. **New View**: Create component in `src/components/views/`
+2. **New API Endpoint**: Add route in `server/routes/`
+3. **New Schema Field**: Update models in `server/models/`
+4. **New Page**: Add to `src/pages/` and update routes in `App.tsx`
+
+---
+
+## 🚀 Deployment
+
+### Frontend (Vercel/Netlify)
+
+```bash
+# Build frontend
+npm run build
+
+# Output in: dist/
+# Deploy dist/ folder to hosting platform
+```
+
+### Backend (Railway/Render/Heroku)
+
+```bash
+# Ensure environment variables are set in platform
+# Deploy server/ directory
+# Set start command: node server/index.js
+```
+
+### Environment Variables for Production
+
+Update all environment variables:
+- Change `JWT_SECRET` to a strong random string
+- Update `MONGODB_URI` with production credentials
+- Set `VITE_API_URL` to your production backend URL
+- Update CORS origins in `server/index.js`
+
+---
+
+## 🐛 Troubleshooting
+
+### MongoDB Connection Issues
+- Verify connection string in `.env` includes `/kairon_planner` database name
+- Check MongoDB Atlas IP whitelist (allow 0.0.0.0/0 for development)
+- Ensure database user has read/write permissions
+
+### Authentication Issues
+- Clear localStorage: `localStorage.clear()` in browser console
+- Check JWT_SECRET is set in `.env`
+- Verify backend server is running on port 3001
+
+### Plans Not Showing in "My Plans"
+- Ensure you're logged in with the account that created the plans
+- Check MongoDB Atlas → `kairon_planner.plans` collection for data
+- Verify userId matches between user and plans
+
+### Auto-Save Not Working
+- Check browser console for errors
+- Verify backend is accessible at http://localhost:3001
+- Make sure you've made changes (hasUnsavedChanges = true)
+
+---
+
+## 📝 License
+
+MIT License - feel free to use this project for personal or commercial purposes.
+
+---
+
+## 🙏 Acknowledgments
+
+- **shadcn/ui** - Beautiful UI components
+- **DevExtreme** - Enterprise-grade DataGrid, Gantt, Scheduler
+- **MongoDB Atlas** - Cloud database platform
+- **Supabase** - Backend and AI gateway
+- **Tailwind CSS** - Utility-first CSS framework
+
+---
+
+## 📧 Support
+
+For issues, questions, or contributions:
+- Create an issue in the GitHub repository
+- Check existing documentation files in the project root
+- Review the `AUTH_IMPLEMENTATION.md` for authentication details
+- See `SAVE_FEATURES_IMPLEMENTED.md` for auto-save documentation
+
+---
+
+**Built with ❤️ by Omkar Choudhury**
+
+🚀 Happy Planning!
 bun install
 
 # Or using npm
