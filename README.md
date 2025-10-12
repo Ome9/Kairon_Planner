@@ -458,24 +458,6 @@ npm run dev:full         # Start both frontend and backend
 npm run test:db          # Test MongoDB connection
 ```
 
-### Environment Variables
-
-```env
-# Supabase (AI Functions)
-VITE_SUPABASE_PROJECT_ID="your-project-id"
-VITE_SUPABASE_PUBLISHABLE_KEY="your-public-key"
-VITE_SUPABASE_URL="https://your-project.supabase.co"
-
-# MongoDB
-MONGODB_URI="mongodb+srv://user:pass@cluster.mongodb.net/kairon_planner"
-
-# JWT Authentication
-JWT_SECRET="your-secret-key-change-in-production"
-
-# API Configuration
-VITE_API_URL="http://localhost:3001/api"
-```
-
 ### Adding New Features
 
 1. **New View**: Create component in `src/components/views/`
