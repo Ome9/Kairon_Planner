@@ -187,17 +187,6 @@ npm run dev
 
 ## � Database Setup
 
-### MongoDB Atlas Configuration
-
-The application connects to MongoDB Atlas with the connection string in `.env`:
-
-```env
-MONGODB_URI="mongodb+srv://username:password@cluster0.fv4seiu.mongodb.net/kairon_planner?retryWrites=true&w=majority"
-JWT_SECRET="your-secret-key-here"
-```
-
-### Collections Schema
-
 #### Users Collection
 ```javascript
 {
