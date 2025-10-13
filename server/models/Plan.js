@@ -21,7 +21,10 @@ const taskSchema = new mongoose.Schema({
     type: String, 
     enum: ['low', 'medium', 'high', 'urgent'],
     default: 'medium'
-  }
+  },
+  order: { type: Number, default: 0 },
+  kanban_column: { type: String },
+  kanban_position: { type: Number, default: 0 }
 }, { _id: false });
 
 const planSchema = new mongoose.Schema({
@@ -93,7 +96,8 @@ planSchema.index({ userId: 1, isStarred: 1 });
 planSchema.pre('save', function(next) {
   if (this.tasks && this.tasks.length > 0) {
     this.totalTasks = this.tasks.length;
-    this.completedTasks = this.tasks.filter(t => t.status === 'completed').length;
+    // Check both completed field and status for backward compatibility
+    this.completedTasks = this.tasks.filter(t => t.completed === true || t.status === 'completed').length;
     this.progressPercentage = Math.round((this.completedTasks / this.totalTasks) * 100);
     this.estimatedDuration = this.tasks.reduce((sum, t) => sum + t.estimated_duration_hours, 0);
   }

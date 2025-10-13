@@ -61,22 +61,38 @@ export const KanbanBoardView = ({ tasks, onTaskUpdate }: KanbanBoardViewProps) =
     };
 
     tasks.forEach((task) => {
-      const status = task.status;
-      if (!status || status === TaskStatus.BACKLOG || status === TaskStatus.TODO) {
-        groups["Not Started"].push(task);
-      } else if (status === TaskStatus.IN_PROGRESS) {
-        groups["In Progress"].push(task);
-      } else if (status === TaskStatus.IN_REVIEW) {
-        groups["Review"].push(task);
-      } else if (status === TaskStatus.DONE) {
-        groups["Completed"].push(task);
+      // Use kanban_column if available, otherwise fallback to status
+      if (task.kanban_column) {
+        if (groups[task.kanban_column as KanbanStatus]) {
+          groups[task.kanban_column as KanbanStatus].push(task);
+        }
       } else {
-        const mod = task.id % 4;
-        if (mod === 0) groups["Not Started"].push(task);
-        else if (mod === 1) groups["In Progress"].push(task);
-        else if (mod === 2) groups["Review"].push(task);
-        else groups["Completed"].push(task);
+        const status = task.status;
+        if (!status || status === TaskStatus.BACKLOG || status === TaskStatus.TODO) {
+          groups["Not Started"].push(task);
+        } else if (status === TaskStatus.IN_PROGRESS) {
+          groups["In Progress"].push(task);
+        } else if (status === TaskStatus.IN_REVIEW) {
+          groups["Review"].push(task);
+        } else if (status === TaskStatus.DONE) {
+          groups["Completed"].push(task);
+        } else {
+          const mod = task.id % 4;
+          if (mod === 0) groups["Not Started"].push(task);
+          else if (mod === 1) groups["In Progress"].push(task);
+          else if (mod === 2) groups["Review"].push(task);
+          else groups["Completed"].push(task);
+        }
       }
+    });
+
+    // Sort tasks within each column by their saved position
+    Object.keys(groups).forEach((status) => {
+      groups[status as KanbanStatus].sort((a, b) => {
+        const posA = a.kanban_position ?? 999;
+        const posB = b.kanban_position ?? 999;
+        return posA - posB;
+      });
     });
 
     setTasksByStatus(groups);
@@ -182,13 +198,14 @@ export const KanbanBoardView = ({ tasks, onTaskUpdate }: KanbanBoardViewProps) =
       );
     });
 
-    // Add to new status
-    newTasksByStatus[toStatus].splice(e.toIndex ?? 0, 0, task);
+    // Add to new status at specific position
+    const toIndex = e.toIndex ?? 0;
+    newTasksByStatus[toStatus].splice(toIndex, 0, task);
     setTasksByStatus(newTasksByStatus);
     
-    console.log(`Task ${task.id} moved to ${toStatus}`);
+    console.log(`Task ${task.id} moved to ${toStatus} at position ${toIndex}`);
     
-    // Update the task status and notify parent component
+    // Update the task status, column, and position, then notify parent component
     if (onTaskUpdate) {
       const statusMap: Record<KanbanStatus, TaskStatus> = {
         "Not Started": TaskStatus.BACKLOG,
@@ -198,7 +215,10 @@ export const KanbanBoardView = ({ tasks, onTaskUpdate }: KanbanBoardViewProps) =
       };
       
       onTaskUpdate(task.id, { 
-        status: statusMap[toStatus]
+        status: statusMap[toStatus],
+        kanban_column: toStatus,
+        kanban_position: toIndex,
+        completed: toStatus === "Completed"
       });
     }
   }, [tasksByStatus, onTaskUpdate]);

@@ -20,6 +20,9 @@ export interface Task {
   progress?: number;
   assignee?: string;
   priority?: string;
+  order?: number; // Position in the overall task list
+  kanban_column?: string; // Which Kanban column the task is in
+  kanban_position?: number; // Position within the Kanban column
 }
 
 export interface ProjectPlan {

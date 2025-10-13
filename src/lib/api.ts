@@ -31,6 +31,10 @@ export interface Task {
   progress?: number;
   assignee?: string;
   priority?: 'low' | 'medium' | 'high' | 'urgent';
+  order?: number;
+  kanban_column?: string;
+  kanban_position?: number;
+  completed?: boolean;
 }
 
 export interface Plan {

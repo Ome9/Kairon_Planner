@@ -70,7 +70,7 @@ const Index = () => {
         await plansAPI.updatePlan(savedPlanId, {
           projectName: planData.projectName,
           projectSummary: planData.projectSummary,
-          tasks: planData.tasks.map((task) => ({
+          tasks: planData.tasks.map((task, index) => ({
             id: task.id,
             title: task.title,
             description: task.description,
@@ -83,6 +83,10 @@ const Index = () => {
             progress: 0,
             assignee: "",
             priority: "medium",
+            order: task.order ?? index,
+            kanban_column: task.kanban_column,
+            kanban_position: task.kanban_position,
+            completed: task.completed || false,
           })),
           status: "active",
         });
@@ -95,7 +99,7 @@ const Index = () => {
           projectName: planData.projectName,
           projectSummary: planData.projectSummary,
           goalText: planData.projectSummary,
-          tasks: planData.tasks.map((task) => ({
+          tasks: planData.tasks.map((task, index) => ({
             id: task.id,
             title: task.title,
             description: task.description,
@@ -108,6 +112,10 @@ const Index = () => {
             progress: 0,
             assignee: "",
             priority: "medium",
+            order: task.order ?? index,
+            kanban_column: task.kanban_column,
+            kanban_position: task.kanban_position,
+            completed: task.completed || false,
           })),
           status: "active",
           tags: [],
