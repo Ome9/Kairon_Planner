@@ -15,6 +15,11 @@ const taskSchema = new mongoose.Schema({
   completed: { type: Boolean, default: false },
   start_date: { type: String },
   end_date: { type: String },
+  due_date: { type: String }, // Scheduled due date
+  scheduled_start: { type: String }, // Auto-scheduled start time
+  scheduled_end: { type: String }, // Auto-scheduled end time
+  actual_start: { type: String }, // When task actually started
+  actual_end: { type: String }, // When task actually completed
   progress: { type: Number, default: 0 },
   assignee: { type: String },
   priority: { 
@@ -24,7 +29,21 @@ const taskSchema = new mongoose.Schema({
   },
   order: { type: Number, default: 0 },
   kanban_column: { type: String },
-  kanban_position: { type: Number, default: 0 }
+  kanban_position: { type: Number, default: 0 },
+  cover_image: { type: String }, // Topic-themed cover image URL
+  tags: [{ type: String }], // Smart tags
+  estimated_complexity: { 
+    type: String, 
+    enum: ['Low', 'Medium', 'High'],
+    default: 'Medium'
+  },
+  subtasks: [{ type: String }], // Subtask checklist
+  is_milestone: { type: Boolean, default: false }, // Mark as milestone
+  blocked_by: [{ type: Number }], // Tasks blocking this one
+  blocking: [{ type: Number }], // Tasks this one is blocking
+  slack_time: { type: Number, default: 0 }, // Buffer time in hours
+  is_critical_path: { type: Boolean, default: false } // Part of critical path
+
 }, { _id: false });
 
 const planSchema = new mongoose.Schema({
@@ -61,6 +80,24 @@ const planSchema = new mongoose.Schema({
   completedTasks: { type: Number, default: 0 },
   progressPercentage: { type: Number, default: 0 },
   estimatedDuration: { type: Number, default: 0 },
+  project_start_date: { type: String }, // Overall project start
+  project_end_date: { type: String }, // Overall project end
+  working_hours: {
+    start: { type: String, default: '09:00' }, // Work day start
+    end: { type: String, default: '17:00' }, // Work day end
+    hours_per_day: { type: Number, default: 8 }
+  },
+  working_days: {
+    type: [Number], // 0=Sunday, 1=Monday, etc.
+    default: [1, 2, 3, 4, 5] // Monday-Friday
+  },
+  schedule_settings: {
+    auto_schedule_enabled: { type: Boolean, default: false },
+    last_scheduled_at: { type: Date },
+    schedule_from: { type: String, enum: ['now', 'project_start'], default: 'now' },
+    respect_dependencies: { type: Boolean, default: true },
+    respect_working_hours: { type: Boolean, default: true }
+  },
   createdAt: { 
     type: Date, 
     default: Date.now,

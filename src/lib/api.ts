@@ -30,6 +30,11 @@ export interface Task {
   status?: 'not_started' | 'todo' | 'in_progress' | 'review' | 'completed';
   start_date?: string;
   end_date?: string;
+  due_date?: string;
+  scheduled_start?: string;
+  scheduled_end?: string;
+  actual_start?: string;
+  actual_end?: string;
   progress?: number;
   assignee?: string;
   priority?: 'low' | 'medium' | 'high' | 'urgent';
@@ -37,6 +42,15 @@ export interface Task {
   kanban_column?: string;
   kanban_position?: number;
   completed?: boolean;
+  cover_image?: string;
+  tags?: string[];
+  estimated_complexity?: 'Low' | 'Medium' | 'High';
+  subtasks?: string[];
+  is_milestone?: boolean;
+  blocked_by?: number[];
+  blocking?: number[];
+  slack_time?: number;
+  is_critical_path?: boolean;
 }
 
 export interface Plan {

@@ -220,21 +220,37 @@ export const KanbanView = ({ tasks, onTaskUpdate, onTaskAdd }: KanbanViewProps) 
                             {...provided.draggableProps}
                             {...provided.dragHandleProps}
                             className={cn(
-                              "p-4 border-border cursor-grab active:cursor-grabbing",
+                              "p-0 border-border cursor-grab active:cursor-grabbing overflow-hidden",
                               "hover:shadow-lg transition-all",
                               "bg-card",
                               snapshot.isDragging && "shadow-2xl ring-2 ring-primary/50 rotate-2"
                             )}
                           >
-                            {/* Task Header */}
-                            <div className="flex items-start gap-3 mb-3">
-                              {/* Task ID Badge */}
-                              <div className="w-6 h-6 bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center text-white font-bold text-xs rounded flex-shrink-0">
-                                {task.id}
+                            {/* Cover Image */}
+                            {task.cover_image && (
+                              <div className="w-full h-32 bg-gradient-to-br from-purple-500/20 to-blue-500/20 relative overflow-hidden">
+                                <img 
+                                  src={task.cover_image} 
+                                  alt={task.title}
+                                  className="w-full h-full object-cover opacity-80"
+                                  onError={(e) => {
+                                    // Fallback to gradient if image fails to load
+                                    e.currentTarget.style.display = 'none';
+                                  }}
+                                />
                               </div>
+                            )}
+                            
+                            <div className="p-4">
+                              {/* Task Header */}
+                              <div className="flex items-start gap-3 mb-3">
+                                {/* Task ID Badge */}
+                                <div className="w-6 h-6 bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center text-white font-bold text-xs rounded flex-shrink-0">
+                                  {task.id}
+                                </div>
 
-                              {/* Title Edit/Display */}
-                              {editingId === task.id ? (
+                                {/* Title Edit/Display */}
+                                {editingId === task.id ? (
                                 <div className="flex-1 flex items-center gap-2">
                                   <Input
                                     value={titleDrafts[task.id] || task.title}
@@ -306,6 +322,18 @@ export const KanbanView = ({ tasks, onTaskUpdate, onTaskAdd }: KanbanViewProps) 
                                   <span>{task.dependencies.length}</span>
                                 </div>
                               )}
+                              {task.estimated_complexity && (
+                                <div className="flex items-center gap-1">
+                                  <span className={cn(
+                                    "px-1.5 py-0.5 rounded text-[10px] font-medium",
+                                    task.estimated_complexity === 'Low' && "bg-green-500/10 text-green-500",
+                                    task.estimated_complexity === 'Medium' && "bg-yellow-500/10 text-yellow-500",
+                                    task.estimated_complexity === 'High' && "bg-red-500/10 text-red-500"
+                                  )}>
+                                    {task.estimated_complexity}
+                                  </span>
+                                </div>
+                              )}
                               {task.completed && (
                                 <div className="ml-auto">
                                   <Badge variant="default" className="bg-green-500 text-xs">
@@ -314,6 +342,36 @@ export const KanbanView = ({ tasks, onTaskUpdate, onTaskAdd }: KanbanViewProps) 
                                   </Badge>
                                 </div>
                               )}
+                            </div>
+
+                            {/* Tags */}
+                            {task.tags && task.tags.length > 0 && (
+                              <div className="flex flex-wrap gap-1 mt-2">
+                                {task.tags.map((tag, idx) => (
+                                  <span 
+                                    key={idx}
+                                    className="px-2 py-0.5 bg-primary/10 text-primary text-[10px] font-medium rounded-full"
+                                  >
+                                    #{tag}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+
+                            {/* Subtasks Progress */}
+                            {task.subtasks && task.subtasks.length > 0 && (
+                              <div className="mt-2 pt-2 border-t border-border/50">
+                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                  <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+                                    <div 
+                                      className="h-full bg-primary transition-all"
+                                      style={{ width: `${(task.progress || 0)}%` }}
+                                    />
+                                  </div>
+                                  <span className="text-[10px] font-medium">{task.subtasks.length} tasks</span>
+                                </div>
+                              </div>
+                            )}
                             </div>
                           </Card>
                         )}

@@ -12,6 +12,7 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { plansAPI } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
+import { generateCoverImage, generateSmartTags, estimateComplexity, generateSubtasks } from "@/lib/imageGenerator";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -264,11 +265,26 @@ const Index = () => {
       }
 
       const generatedPlan = data as ProjectPlan;
-      setPlan(generatedPlan);
-      toast.success("Your project plan has been generated!");
+      
+      // Enhance tasks with smart features
+      const enhancedTasks = generatedPlan.tasks.map(task => ({
+        ...task,
+        cover_image: generateCoverImage(task.title, task.category),
+        tags: generateSmartTags(task),
+        estimated_complexity: estimateComplexity(task),
+        subtasks: generateSubtasks(task.description),
+      }));
+
+      const enhancedPlan = {
+        ...generatedPlan,
+        tasks: enhancedTasks,
+      };
+
+      setPlan(enhancedPlan);
+      toast.success("Your smart project plan has been generated with AI enhancements!");
 
       // Auto-save to database
-      await savePlanToDatabase(generatedPlan);
+      await savePlanToDatabase(enhancedPlan);
     } catch (error) {
       console.error("Error generating plan:", error);
       toast.error("Failed to generate plan. Please try again.");

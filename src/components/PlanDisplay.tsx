@@ -15,6 +15,7 @@ import { GanttView, GanttViewHandle } from "./views/GanttView";
 import { SchedulerView } from "./views/SchedulerView";
 import { DevExtremeProvider } from "./DevExtremeProvider";
 import { Button } from "./ui/button";
+import { SmartScheduleButton } from "./SmartScheduleButton";
 import anime from "animejs";
 import { toast } from "./ui/use-toast";
 
@@ -214,6 +215,14 @@ export const PlanDisplay = ({ plan, onPlanUpdate }: PlanDisplayProps) => {
             </div>
 
             <div className="flex items-center gap-3 flex-wrap flex-shrink-0">
+              <SmartScheduleButton 
+                plan={plan} 
+                onScheduleApplied={(scheduledPlan) => {
+                  if (onPlanUpdate) {
+                    onPlanUpdate(scheduledPlan);
+                  }
+                }}
+              />
               {showDevExtremeToolbar && (
                 <>
                   <Button variant="outline" size="sm" onClick={handleExportPDF}>
