@@ -467,33 +467,172 @@ npm run test:db          # Test MongoDB connection
 
 ---
 
-## 🚀 Deployment
+## 🚀 Deployment (CLI Guide)
 
-### Frontend (Vercel/Netlify)
-
+### Prerequisites
 ```bash
-# Build frontend
-npm run build
+# Install Vercel CLI
+npm install -g vercel
 
-# Output in: dist/
-# Deploy dist/ folder to hosting platform
+# Sign up for free accounts:
+# - MongoDB Atlas: https://mongodb.com/cloud/atlas
+# - Render: https://render.com
+# - Vercel: https://vercel.com
 ```
 
-### Backend (Railway/Render/Heroku)
+---
 
+### Step 1: MongoDB Atlas Setup (5 min)
+
+1. **Create FREE M0 cluster** at https://mongodb.com/cloud/atlas
+2. **Database Access** → Add User:
+   - Username: `kairon_admin`
+   - Password: `[generate-strong-password]`
+   - Role: Atlas Admin
+3. **Network Access** → Add IP: `0.0.0.0/0` (allow all)
+4. **Get Connection String**:
+   ```
+   mongodb+srv://kairon_admin:PASSWORD@cluster.xxxxx.mongodb.net/kairon_planner?retryWrites=true&w=majority
+   ```
+
+---
+
+### Step 2: Deploy Backend to Render (5 min)
+
+1. **Push to GitHub**:
 ```bash
-# Ensure environment variables are set in platform
-# Deploy server/ directory
-# Set start command: node server/index.js
+git add .
+git commit -m "Deploy to production"
+git push origin main
 ```
 
-### Environment Variables for Production
+2. **Render Dashboard** (https://dashboard.render.com):
+   - New → Web Service
+   - Connect GitHub repo: `Kairon_Planner`
+   - Name: `kairon-planner-backend`
+   - Build: `cd server && npm install`
+   - Start: `cd server && npm start`
+   - Plan: **Free**
 
-Update all environment variables:
-- Change `JWT_SECRET` to a strong random string
-- Update `MONGODB_URI` with production credentials
-- Set `VITE_API_URL` to your production backend URL
-- Update CORS origins in `server/index.js`
+3. **Add Environment Variables** (in Render):
+```env
+NODE_ENV=production
+PORT=3001
+MONGODB_URI=mongodb+srv://kairon_admin:PASSWORD@cluster.xxxxx.mongodb.net/kairon_planner?retryWrites=true&w=majority
+JWT_SECRET=generate-random-32-char-secret-key
+CORS_ORIGIN=https://your-app-name.vercel.app
+```
+
+4. **Deploy** → Wait 3-5 minutes → Copy backend URL
+
+---
+
+### Step 3: Deploy Frontend to Vercel (2 min)
+
+```bash
+# Login to Vercel
+vercel login
+
+# Deploy to production
+vercel --prod
+
+# When prompted:
+# - Project name: kairon-planner
+# - Directory: ./
+# - Override settings: No
+
+# Add environment variables via CLI:
+vercel env add VITE_API_URL production
+# Enter: https://your-backend.onrender.com/api
+
+vercel env add VITE_SUPABASE_URL production
+# Enter: https://your-project.supabase.co
+
+vercel env add VITE_SUPABASE_ANON_KEY production
+# Enter: your-supabase-anon-key
+
+# Redeploy with new env vars
+vercel --prod
+```
+
+**Alternative: Add via Dashboard**
+- Vercel Dashboard → Project → Settings → Environment Variables
+
+---
+
+### Step 4: Update CORS (1 min)
+
+Go to Render → Your Service → Environment → Update:
+```
+CORS_ORIGIN=https://kairon-planner.vercel.app
+```
+(Use your actual Vercel URL)
+
+---
+
+### Step 5: Deploy Supabase Function (Optional)
+
+```bash
+# Install Supabase CLI
+npm install -g supabase
+
+# Login
+supabase login
+
+# Link project
+supabase link --project-ref your-project-ref
+
+# Deploy function
+supabase functions deploy generate-plan
+
+# Set OpenAI API key
+supabase secrets set OPENAI_API_KEY=sk-your-openai-key
+```
+
+---
+
+### ✅ Test Deployment
+
+```bash
+# Test backend health
+curl https://your-backend.onrender.com/health
+
+# Open frontend
+open https://your-app.vercel.app
+```
+
+**Test Checklist**:
+1. ✅ UI loads without errors (F12 console)
+2. ✅ Generate AI plan works
+3. ✅ Kanban drag-and-drop works
+4. ✅ Smart Schedule works
+5. ✅ Data persists after refresh
+
+---
+
+### 💰 Cost: 100% FREE
+
+- MongoDB Atlas M0: **$0/month** (512MB)
+- Render Free: **$0/month** (750 hrs)
+- Vercel Hobby: **$0/month** (100GB)
+- **Total: $0/month** 🎉
+
+**Upgrade when needed**: Render Starter $7/mo (always-on) + MongoDB M10 $9/mo = $16/mo
+
+---
+
+### 🔧 Troubleshooting
+
+**CORS Error**: Update `CORS_ORIGIN` in Render to exact Vercel URL (include https://)
+
+**Backend 502**: Wait 60 seconds (cold start on free tier)
+
+**Database Connection Failed**: 
+- Check MongoDB Network Access: `0.0.0.0/0` added
+- Verify connection string password (URL-encode special chars)
+- Ensure database name: `/kairon_planner`
+
+**Build Failed**: Run `npm run build` locally first to check for errors
 
 ---
 

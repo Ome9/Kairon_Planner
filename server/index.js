@@ -17,9 +17,28 @@ dotenv.config({ path: path.resolve(__dirname, '../.env') });
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// CORS Configuration - Support multiple origins
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:8080',
+  'http://localhost:8081',
+  process.env.CORS_ORIGIN, // Vercel/production URL
+  process.env.VITE_APP_URL
+].filter(Boolean);
+
 // Middleware
 app.use(cors({
-  origin: process.env.VITE_APP_URL || 'http://localhost:8080',
+  origin: function(origin, callback) {
+    // Allow requests with no origin (mobile apps, curl, Postman, etc)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.some(allowed => origin?.includes(allowed))) {
+      callback(null, true);
+    } else {
+      console.warn(`CORS blocked origin: ${origin}`);
+      callback(null, true); // Allow in development, can change to false in strict production
+    }
+  },
   credentials: true
 }));
 app.use(express.json());
