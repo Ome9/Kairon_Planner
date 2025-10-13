@@ -188,7 +188,31 @@ const Index = () => {
         return response.data._id;
       }
     } catch (error) {
-      console.error("Error saving plan:", error);
+      console.error("❌ Error saving plan:", error);
+      
+      // Log more details about the error
+      if (error instanceof Error) {
+        console.error("Error message:", error.message);
+        console.error("Error stack:", error.stack);
+      }
+      
+      // Check if it's an axios error with response
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if ((error as any).response) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        console.error("Response status:", (error as any).response.status);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        console.error("Response data:", (error as any).response.data);
+      }
+      
+      // Check if it's a network error
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if ((error as any).request) {
+        console.error("Request made but no response received");
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        console.error("Request:", (error as any).request);
+      }
+      
       toast.error("Failed to save plan to database");
       return null;
     } finally {
