@@ -47,6 +47,13 @@ All colors MUST be HSL.
     --shadow-card: 0 1px 3px hsl(0 0% 0% / 0.3);
     --shadow-elevated: 0 4px 12px hsl(0 0% 0% / 0.5);
     
+    /* Dotted Glow Background Colors */
+    --color-purple-500: hsl(263, 70%, 50%);
+    --color-purple-600: hsl(263, 70%, 45%);
+    --color-neutral-500: hsl(240, 5%, 50%);
+    --color-neutral-600: hsl(240, 5%, 40%);
+    --color-sky-800: hsl(199, 89%, 35%);
+    
     --sidebar-background: 240 10% 5%;
     --sidebar-foreground: 0 0% 98%;
     --sidebar-primary: 263 70% 60%;
@@ -131,6 +138,16 @@ All colors MUST be HSL.
 
   *::-webkit-scrollbar {
     display: none; /* Chrome, Safari, Opera */
+  }
+
+  /* Hide Radix UI ScrollArea scrollbars */
+  [data-radix-scroll-area-viewport] {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+  }
+
+  [data-radix-scroll-area-viewport]::-webkit-scrollbar {
+    display: none !important;
   }
 
   /* Hide DevExpress evaluation notice */

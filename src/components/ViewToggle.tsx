@@ -18,14 +18,9 @@ const StyledWrapper = styled.div`
     flex-direction: row;
     position: relative;
     padding-bottom: 0.5rem;
-    overflow-x: auto;
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* IE and Edge */
-  }
-  
-  /* Hide scrollbar for Chrome, Safari and Opera */
-  .radio-container::-webkit-scrollbar {
-    display: none;
+    overflow: hidden; /* Prevent scrolling */
+    flex-wrap: wrap; /* Allow wrapping to multiple lines if needed */
+    gap: 0.25rem; /* Add small gap between items when wrapped */
   }
   
   .radio-container input {

@@ -33,6 +33,11 @@ export const PlanDisplay = ({ plan, onPlanUpdate }: PlanDisplayProps) => {
   const totalHours = plan.tasks.reduce((sum, task) => sum + task.estimated_duration_hours, 0);
   const categories = Array.from(new Set(plan.tasks.map(t => t.category)));
   
+  // Calculate completion stats
+  const totalTasks = plan.tasks.length;
+  const completedTasks = plan.tasks.filter(t => t.completed === true).length;
+  const completionPercentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+  
   const filteredTasks = filterCategory 
     ? plan.tasks.filter(t => t.category === filterCategory)
     : plan.tasks;
@@ -111,6 +116,7 @@ export const PlanDisplay = ({ plan, onPlanUpdate }: PlanDisplayProps) => {
   };
 
   const handleTaskUpdate = (taskId: number, updates: Partial<Task>) => {
+    console.log('📋 Task update received:', { taskId, updates });
     const updatedTasks = plan.tasks.map(task =>
       task.id === taskId ? { ...task, ...updates } : task
     );
@@ -119,6 +125,8 @@ export const PlanDisplay = ({ plan, onPlanUpdate }: PlanDisplayProps) => {
       ...plan,
       tasks: updatedTasks,
     };
+    
+    console.log('📋 Updated plan:', updatedPlan);
     
     if (onPlanUpdate) {
       onPlanUpdate(updatedPlan);
@@ -203,7 +211,20 @@ export const PlanDisplay = ({ plan, onPlanUpdate }: PlanDisplayProps) => {
       </div>
 
       {/* Stats Cards - Full Width Row */}
-      <div ref={statCardsRef} className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+      <div ref={statCardsRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div className="stat-card">
+          <Card className="p-4 bg-card border border-border h-full flex items-center gap-3 hover:shadow-lg hover:scale-105 cursor-pointer group transition-all">
+            <div className="p-2 rounded-md bg-green-500/10 group-hover:bg-green-500/20 transition-colors">
+              <Target className="w-5 h-5 text-green-500" />
+            </div>
+            <div className="flex-1">
+              <div className="text-xl font-semibold">{completionPercentage}%</div>
+              <div className="text-xs text-muted-foreground uppercase tracking-wide">Complete</div>
+              <div className="mt-1 text-xs text-muted-foreground">{completedTasks}/{totalTasks} tasks</div>
+            </div>
+          </Card>
+        </div>
+
         <div className="stat-card">
           <Card className="p-4 bg-card border border-border h-full flex items-center gap-3 hover:shadow-lg hover:scale-105 cursor-pointer group transition-all">
             <div className="p-2 rounded-md bg-primary/10 group-hover:bg-primary/20 transition-colors">
@@ -211,7 +232,7 @@ export const PlanDisplay = ({ plan, onPlanUpdate }: PlanDisplayProps) => {
             </div>
             <div>
               <div className="text-xl font-semibold">{plan.tasks.length}</div>
-              <div className="text-xs text-muted-foreground uppercase tracking-wide">Tasks</div>
+              <div className="text-xs text-muted-foreground uppercase tracking-wide">Total Tasks</div>
             </div>
           </Card>
         </div>

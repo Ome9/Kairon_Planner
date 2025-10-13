@@ -137,6 +137,18 @@ router.put('/:planId', async (req, res) => {
     const { planId } = req.params;
     const updates = req.body;
 
+    console.log('📝 PUT /:planId - Received update request');
+    console.log('📝 Plan ID:', planId);
+    console.log('📝 Updates keys:', Object.keys(updates));
+    if (updates.tasks && updates.tasks.length > 0) {
+      console.log('📝 First 3 tasks:', updates.tasks.slice(0, 3).map(t => ({
+        id: t.id,
+        kanban_column: t.kanban_column,
+        kanban_position: t.kanban_position,
+        completed: t.completed
+      })));
+    }
+
     // Validate ObjectId format
     if (!mongoose.Types.ObjectId.isValid(planId)) {
       return res.status(400).json({
@@ -145,11 +157,8 @@ router.put('/:planId', async (req, res) => {
       });
     }
 
-    const plan = await Plan.findByIdAndUpdate(
-      planId,
-      { ...updates, updatedAt: new Date() },
-      { new: true, runValidators: true }
-    );
+    // Find the plan first
+    const plan = await Plan.findById(planId);
 
     if (!plan) {
       return res.status(404).json({
@@ -158,12 +167,29 @@ router.put('/:planId', async (req, res) => {
       });
     }
 
+    // Update fields (this preserves the updates object structure)
+    Object.keys(updates).forEach(key => {
+      plan[key] = updates[key];
+    });
+    
+    console.log('📝 About to save. Sample tasks:', plan.tasks.slice(0, 3).map(t => ({
+      id: t.id,
+      kanban_column: t.kanban_column,
+      kanban_position: t.kanban_position,
+      completed: t.completed
+    })));
+    
+    // Save to trigger pre-save middleware (for progress calculation)
+    await plan.save();
+
+    console.log('✅ Plan saved. Progress:', plan.progressPercentage, '%');
+
     res.json({
       success: true,
       data: plan
     });
   } catch (error) {
-    console.error('Error updating plan:', error);
+    console.error('❌ Error updating plan:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to update plan'

@@ -31,7 +31,43 @@ const Index = () => {
   useEffect(() => {
     if (location.state?.plan) {
       const loadedPlan = location.state.plan;
-      setPlan(loadedPlan);
+      
+      // Convert API Plan to ProjectPlan with proper status conversion
+      const convertedPlan: ProjectPlan = {
+        projectName: loadedPlan.projectName,
+        projectSummary: loadedPlan.projectSummary,
+        tasks: loadedPlan.tasks.map((task: { 
+          id: number;
+          title: string;
+          description: string;
+          category: string;
+          estimated_duration_hours: number;
+          dependencies: number[];
+          status?: string;
+          order?: number;
+          kanban_column?: string;
+          kanban_position?: number;
+          completed?: boolean;
+          start_date?: string;
+          end_date?: string;
+          progress?: number;
+          assignee?: string;
+          priority?: string;
+        }) => ({
+          ...task,
+          status: convertAPIStatusToTaskStatus(task.status),
+          // Preserve position data
+          order: task.order,
+          kanban_column: task.kanban_column,
+          kanban_position: task.kanban_position,
+          completed: task.completed,
+          // Preserve dates
+          start_date: task.start_date,
+          end_date: task.end_date,
+        })),
+      };
+      
+      setPlan(convertedPlan);
       setSavedPlanId(loadedPlan._id);
       
       // Clear the navigation state
@@ -40,6 +76,18 @@ const Index = () => {
       toast.success("Plan loaded successfully!");
     }
   }, [location]);
+
+  // Helper function to convert API status to TaskStatus enum
+  const convertAPIStatusToTaskStatus = (status: string | undefined): string | undefined => {
+    if (!status) return undefined;
+    const statusMap: Record<string, string> = {
+      'not_started': 'Backlog',
+      'in_progress': 'In Progress',
+      'review': 'In Review',
+      'completed': 'Done',
+    };
+    return statusMap[status] || status;
+  };
 
   const savePlanToDatabase = async (planData: ProjectPlan) => {
     try {
@@ -67,6 +115,18 @@ const Index = () => {
       
       if (savedPlanId) {
         // Update existing plan
+        console.log('📝 Updating plan with ID:', savedPlanId);
+        console.log('📝 Plan data being sent:', {
+          projectName: planData.projectName,
+          tasks: planData.tasks.map(t => ({
+            id: t.id,
+            title: t.title,
+            kanban_column: t.kanban_column,
+            kanban_position: t.kanban_position,
+            completed: t.completed,
+            status: convertStatus(t.status)
+          }))
+        });
         await plansAPI.updatePlan(savedPlanId, {
           projectName: planData.projectName,
           projectSummary: planData.projectSummary,
@@ -78,11 +138,11 @@ const Index = () => {
             estimated_duration_hours: task.estimated_duration_hours,
             dependencies: task.dependencies,
             status: convertStatus(task.status),
-            start_date: new Date().toISOString(),
-            end_date: new Date(Date.now() + task.estimated_duration_hours * 60 * 60 * 1000).toISOString(),
-            progress: 0,
-            assignee: "",
-            priority: "medium",
+            start_date: task.start_date || new Date().toISOString(),
+            end_date: task.end_date || new Date(Date.now() + task.estimated_duration_hours * 60 * 60 * 1000).toISOString(),
+            progress: task.progress || 0,
+            assignee: task.assignee || "",
+            priority: (task.priority || "medium") as "low" | "medium" | "high" | "urgent",
             order: task.order ?? index,
             kanban_column: task.kanban_column,
             kanban_position: task.kanban_position,
@@ -107,11 +167,11 @@ const Index = () => {
             estimated_duration_hours: task.estimated_duration_hours,
             dependencies: task.dependencies,
             status: convertStatus(task.status),
-            start_date: new Date().toISOString(),
-            end_date: new Date(Date.now() + task.estimated_duration_hours * 60 * 60 * 1000).toISOString(),
-            progress: 0,
-            assignee: "",
-            priority: "medium",
+            start_date: task.start_date || new Date().toISOString(),
+            end_date: task.end_date || new Date(Date.now() + task.estimated_duration_hours * 60 * 60 * 1000).toISOString(),
+            progress: task.progress || 0,
+            assignee: task.assignee || "",
+            priority: (task.priority || "medium") as "low" | "medium" | "high" | "urgent",
             order: task.order ?? index,
             kanban_column: task.kanban_column,
             kanban_position: task.kanban_position,
@@ -173,27 +233,37 @@ const Index = () => {
   };
 
   const handlePlanUpdate = (updatedPlan: ProjectPlan) => {
+    console.log('🔄 Plan updated:', updatedPlan);
     setPlan(updatedPlan);
     setHasUnsavedChanges(true);
   };
 
   const handleManualSave = async () => {
+    console.log('💾 Manual save triggered. Plan:', plan, 'hasUnsavedChanges:', hasUnsavedChanges);
     if (plan && hasUnsavedChanges) {
-      await savePlanToDatabase(plan);
+      const result = await savePlanToDatabase(plan);
+      console.log('💾 Save result:', result);
     }
   };
 
   // Auto-save every 60 seconds when there are unsaved changes
   useEffect(() => {
+    console.log('⏰ Auto-save effect triggered:', { 
+      hasPlan: !!plan, 
+      hasUnsavedChanges, 
+      isSaving 
+    });
+    
     if (plan && hasUnsavedChanges && !isSaving) {
       // Clear existing timer
       if (autoSaveTimerRef.current) {
         clearTimeout(autoSaveTimerRef.current);
       }
 
+      console.log('⏰ Setting auto-save timer for 60 seconds');
       // Set new timer for 60 seconds
       autoSaveTimerRef.current = setTimeout(() => {
-        console.log("Auto-saving plan...");
+        console.log("⏰ Auto-saving plan...");
         savePlanToDatabase(plan);
       }, 60000); // 60 seconds
     }
