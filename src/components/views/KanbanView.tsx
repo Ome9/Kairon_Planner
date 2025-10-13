@@ -66,20 +66,40 @@ export const KanbanView = ({ tasks, onTaskUpdate, onTaskAdd }: KanbanViewProps) 
 
     const taskId = parseInt(draggableId);
     const newStatus = destination.droppableId as TaskStatus;
+    const newPosition = destination.index;
+    const sourceColumn = source.droppableId as TaskStatus;
+    const sourcePosition = source.index;
+    const isMovingToNewColumn = sourceColumn !== newStatus;
 
-    // Update task status
+    console.log('🎯 Kanban drag completed:', {
+      taskId,
+      from: { column: sourceColumn, position: sourcePosition },
+      to: { column: newStatus, position: newPosition },
+      isMovingToNewColumn
+    });
+
+    // Update task with new status, column, and position
     if (onTaskUpdate) {
       const updates: Partial<Task> = {
         status: newStatus,
+        kanban_column: newStatus, // Store the TaskStatus enum value
+        kanban_position: newPosition, // Store the position within that column
         // Auto-complete when moved to Done
         completed: newStatus === TaskStatus.DONE,
       };
+      
+      console.log('🎯 Sending task update:', { 
+        taskId, 
+        updates,
+        statusType: typeof newStatus,
+        statusValue: newStatus
+      });
       
       onTaskUpdate(taskId, updates);
       
       toast({
         title: "Task Status Updated",
-        description: `Task moved to ${newStatus}`,
+        description: `Task moved to ${newStatus} at position ${newPosition}`,
       });
     }
   }, [onTaskUpdate, toast]);
@@ -128,9 +148,26 @@ export const KanbanView = ({ tasks, onTaskUpdate, onTaskAdd }: KanbanViewProps) 
 
   return (
     <DragDropContext onDragEnd={onDragEnd}>
-      <div className="flex gap-4 overflow-x-auto pb-4 min-h-[600px]">
+      <div className="flex gap-4 pb-4 min-h-[600px]" style={{ width: 'max-content', minWidth: '100%' }}>
         {statusColumns.map((column, columnIndex) => {
+          // Filter tasks by status
           const columnTasks = tasksWithStatus.filter(t => t.status === column.id);
+          
+          // Sort tasks by their saved kanban_position
+          // If kanban_position is not set, maintain order by task.id
+          const sortedColumnTasks = columnTasks.sort((a, b) => {
+            // If both have positions, sort by position
+            if (a.kanban_position !== undefined && b.kanban_position !== undefined) {
+              return a.kanban_position - b.kanban_position;
+            }
+            // If only a has position, it comes first
+            if (a.kanban_position !== undefined) return -1;
+            // If only b has position, it comes first
+            if (b.kanban_position !== undefined) return 1;
+            // If neither has position, sort by id
+            return a.id - b.id;
+          });
+          
           const totalHours = columnTasks.reduce((sum, t) => sum + t.estimated_duration_hours, 0);
 
           return (
@@ -156,7 +193,7 @@ export const KanbanView = ({ tasks, onTaskUpdate, onTaskAdd }: KanbanViewProps) 
                   </Button>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  {columnTasks.length} tasks Β· {totalHours}h
+                  {sortedColumnTasks.length} tasks Β· {totalHours}h
                 </p>
               </div>
 
@@ -171,7 +208,7 @@ export const KanbanView = ({ tasks, onTaskUpdate, onTaskAdd }: KanbanViewProps) 
                       snapshot.isDraggingOver && "bg-primary/5"
                     )}
                   >
-                    {columnTasks.map((task, index) => (
+                    {sortedColumnTasks.map((task, index) => (
                       <Draggable
                         key={task.id}
                         draggableId={task.id.toString()}

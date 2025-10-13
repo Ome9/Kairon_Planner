@@ -70,6 +70,20 @@ const Index = () => {
       setPlan(convertedPlan);
       setSavedPlanId(loadedPlan._id);
       
+      console.log('📂 Plan loaded from My Plans:', {
+        planId: loadedPlan._id,
+        projectName: loadedPlan.projectName,
+        tasksCount: loadedPlan.tasks.length,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        firstTaskPositions: loadedPlan.tasks.slice(0, 3).map((t: any) => ({
+          id: t.id,
+          title: t.title,
+          kanban_column: t.kanban_column,
+          kanban_position: t.kanban_position,
+          completed: t.completed
+        }))
+      });
+      
       // Clear the navigation state
       window.history.replaceState({}, document.title);
       
@@ -82,6 +96,7 @@ const Index = () => {
     if (!status) return undefined;
     const statusMap: Record<string, string> = {
       'not_started': 'Backlog',
+      'todo': 'To Do',
       'in_progress': 'In Progress',
       'review': 'In Review',
       'completed': 'Done',
@@ -93,17 +108,25 @@ const Index = () => {
     try {
       setIsSaving(true);
       
+      console.log('💾 savePlanToDatabase called:', {
+        hasSavedPlanId: !!savedPlanId,
+        savedPlanId: savedPlanId,
+        projectName: planData.projectName,
+        tasksCount: planData.tasks.length
+      });
+      
       // Helper function to convert TaskStatus to API status
-      const convertStatus = (status: unknown): 'not_started' | 'in_progress' | 'review' | 'completed' => {
+      const convertStatus = (status: unknown): 'not_started' | 'todo' | 'in_progress' | 'review' | 'completed' => {
         if (!status) return 'not_started';
         if (typeof status === 'string') {
-          const statusMap: Record<string, 'not_started' | 'in_progress' | 'review' | 'completed'> = {
+          const statusMap: Record<string, 'not_started' | 'todo' | 'in_progress' | 'review' | 'completed'> = {
             'Backlog': 'not_started',
-            'To Do': 'not_started',
+            'To Do': 'todo',
             'In Progress': 'in_progress',
             'In Review': 'review',
             'Done': 'completed',
             'not_started': 'not_started',
+            'todo': 'todo',
             'in_progress': 'in_progress',
             'review': 'review',
             'completed': 'completed'
@@ -116,38 +139,42 @@ const Index = () => {
       if (savedPlanId) {
         // Update existing plan
         console.log('📝 Updating plan with ID:', savedPlanId);
-        console.log('📝 Plan data being sent:', {
-          projectName: planData.projectName,
-          tasks: planData.tasks.map(t => ({
+        
+        // Log detailed task information before sending
+        const tasksToSave = planData.tasks.map((task, index) => ({
+          id: task.id,
+          title: task.title,
+          description: task.description,
+          category: task.category,
+          estimated_duration_hours: task.estimated_duration_hours,
+          dependencies: task.dependencies,
+          status: convertStatus(task.status),
+          start_date: task.start_date || new Date().toISOString(),
+          end_date: task.end_date || new Date(Date.now() + task.estimated_duration_hours * 60 * 60 * 1000).toISOString(),
+          progress: task.progress || 0,
+          assignee: task.assignee || "",
+          priority: (task.priority || "medium") as "low" | "medium" | "high" | "urgent",
+          order: task.order ?? index,
+          kanban_column: task.kanban_column,
+          kanban_position: task.kanban_position,
+          completed: task.completed ?? false,
+        }));
+        
+        console.log('📝 Tasks being saved (first 3):', 
+          tasksToSave.slice(0, 3).map(t => ({
             id: t.id,
             title: t.title,
+            status: t.status,
             kanban_column: t.kanban_column,
             kanban_position: t.kanban_position,
-            completed: t.completed,
-            status: convertStatus(t.status)
+            completed: t.completed
           }))
-        });
+        );
+        
         await plansAPI.updatePlan(savedPlanId, {
           projectName: planData.projectName,
           projectSummary: planData.projectSummary,
-          tasks: planData.tasks.map((task, index) => ({
-            id: task.id,
-            title: task.title,
-            description: task.description,
-            category: task.category,
-            estimated_duration_hours: task.estimated_duration_hours,
-            dependencies: task.dependencies,
-            status: convertStatus(task.status),
-            start_date: task.start_date || new Date().toISOString(),
-            end_date: task.end_date || new Date(Date.now() + task.estimated_duration_hours * 60 * 60 * 1000).toISOString(),
-            progress: task.progress || 0,
-            assignee: task.assignee || "",
-            priority: (task.priority || "medium") as "low" | "medium" | "high" | "urgent",
-            order: task.order ?? index,
-            kanban_column: task.kanban_column,
-            kanban_position: task.kanban_position,
-            completed: task.completed || false,
-          })),
+          tasks: tasksToSave,
           status: "active",
         });
         setHasUnsavedChanges(false);
@@ -175,7 +202,7 @@ const Index = () => {
             order: task.order ?? index,
             kanban_column: task.kanban_column,
             kanban_position: task.kanban_position,
-            completed: task.completed || false,
+            completed: task.completed ?? false,
           })),
           status: "active",
           tags: [],

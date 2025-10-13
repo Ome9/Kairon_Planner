@@ -29,6 +29,11 @@ export const PlanDisplay = ({ plan, onPlanUpdate }: PlanDisplayProps) => {
   const statCardsRef = useRef<HTMLDivElement>(null);
   const dataGridRef = useRef<DataGridViewHandle>(null);
   const ganttRef = useRef<GanttViewHandle>(null);
+  
+  // Refs for synchronized scrolling
+  const topScrollRef = useRef<HTMLDivElement>(null);
+  const mainScrollRef = useRef<HTMLDivElement>(null);
+  const bottomScrollRef = useRef<HTMLDivElement>(null);
 
   const totalHours = plan.tasks.reduce((sum, task) => sum + task.estimated_duration_hours, 0);
   const categories = Array.from(new Set(plan.tasks.map(t => t.category)));
@@ -84,6 +89,31 @@ export const PlanDisplay = ({ plan, onPlanUpdate }: PlanDisplayProps) => {
   const handleColumnChooser = () => {
     if (currentView === "datagrid") {
       dataGridRef.current?.showColumnChooser();
+    }
+  };
+
+  // Synchronized scrolling for Kanban view
+  const handleTopScroll = () => {
+    if (topScrollRef.current && mainScrollRef.current && bottomScrollRef.current) {
+      const scrollLeft = topScrollRef.current.scrollLeft;
+      mainScrollRef.current.scrollLeft = scrollLeft;
+      bottomScrollRef.current.scrollLeft = scrollLeft;
+    }
+  };
+
+  const handleMainScroll = () => {
+    if (topScrollRef.current && mainScrollRef.current && bottomScrollRef.current) {
+      const scrollLeft = mainScrollRef.current.scrollLeft;
+      topScrollRef.current.scrollLeft = scrollLeft;
+      bottomScrollRef.current.scrollLeft = scrollLeft;
+    }
+  };
+
+  const handleBottomScroll = () => {
+    if (topScrollRef.current && mainScrollRef.current && bottomScrollRef.current) {
+      const scrollLeft = bottomScrollRef.current.scrollLeft;
+      topScrollRef.current.scrollLeft = scrollLeft;
+      mainScrollRef.current.scrollLeft = scrollLeft;
     }
   };
 
@@ -165,49 +195,51 @@ export const PlanDisplay = ({ plan, onPlanUpdate }: PlanDisplayProps) => {
       transition={{ duration: 0.45 }}
       className="max-w-7xl mx-auto px-4 py-10"
     >
-      {/* Header */}
+      {/* Header - Project Goal Box */}
       <div className="mb-6">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2 flex-wrap mb-2">
-              <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight break-words">
-                {plan.projectName}
-              </h2>
-              <Badge variant="default" className="bg-green-500/10 text-green-500 border-green-500/20">
-                Active
-              </Badge>
+        <Card className="bg-card border border-border shadow-md p-6">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-3 flex-wrap mb-3">
+                <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight break-words">
+                  {plan.projectName}
+                </h2>
+                <Badge variant="default" className="bg-green-500/10 text-green-500 border-green-500/20">
+                  Active
+                </Badge>
+              </div>
+              <p className="text-sm md:text-base text-muted-foreground max-w-3xl break-words leading-relaxed">
+                {plan.projectSummary}
+              </p>
             </div>
-            <p className="text-sm md:text-base text-muted-foreground max-w-3xl break-words">
-              {plan.projectSummary}
-            </p>
-          </div>
 
-          <div className="flex items-center gap-3 flex-wrap flex-shrink-0">
-            {showDevExtremeToolbar && (
-              <>
-                <Button variant="outline" size="sm" onClick={handleExportPDF}>
-                  <FileDown className="w-4 h-4 mr-2" />
-                  PDF
-                </Button>
-                {currentView === "datagrid" && (
-                  <>
-                    <Button variant="outline" size="sm" onClick={handleExportExcel}>
-                      <Table2 className="w-4 h-4 mr-2" />
-                      Excel
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={handleColumnChooser}>
-                      Columns
-                    </Button>
-                  </>
-                )}
-              </>
-            )}
-            <Button variant="outline" onClick={handleExport}>
-              <Download className="w-4 h-4" />
-              Export JSON
-            </Button>
+            <div className="flex items-center gap-3 flex-wrap flex-shrink-0">
+              {showDevExtremeToolbar && (
+                <>
+                  <Button variant="outline" size="sm" onClick={handleExportPDF}>
+                    <FileDown className="w-4 h-4 mr-2" />
+                    PDF
+                  </Button>
+                  {currentView === "datagrid" && (
+                    <>
+                      <Button variant="outline" size="sm" onClick={handleExportExcel}>
+                        <Table2 className="w-4 h-4 mr-2" />
+                        Excel
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={handleColumnChooser}>
+                        Columns
+                      </Button>
+                    </>
+                  )}
+                </>
+              )}
+              <Button variant="outline" onClick={handleExport}>
+                <Download className="w-4 h-4" />
+                Export JSON
+              </Button>
+            </div>
           </div>
-        </div>
+        </Card>
       </div>
 
       {/* Stats Cards - Full Width Row */}
@@ -295,16 +327,18 @@ export const PlanDisplay = ({ plan, onPlanUpdate }: PlanDisplayProps) => {
         animate={{ opacity: 1 }}
         transition={{ delay: 0.06 }}
       >
-        <div className="bg-background p-4 rounded-lg border border-border">
+        <div className="bg-card p-6 border border-border shadow-md overflow-x-auto" style={{ maxWidth: '100%' }}>
           <DevExtremeProvider>
             {currentView === "list" && <ListView tasks={filteredTasks} onTaskUpdate={handleTaskUpdate} />}
             {currentView === "timeline" && <TimelineView tasks={filteredTasks} />}
             {currentView === "kanban" && (
-              <KanbanView 
-                tasks={filteredTasks}
-                onTaskUpdate={handleTaskUpdate}
-                onTaskAdd={handleTaskAdd}
-              />
+              <div style={{ minWidth: 'max-content', width: 'max-content' }}>
+                <KanbanView 
+                  tasks={filteredTasks}
+                  onTaskUpdate={handleTaskUpdate}
+                  onTaskAdd={handleTaskAdd}
+                />
+              </div>
             )}
             {currentView === "analytics" && <AnalyticsView tasks={plan.tasks} projectName={plan.projectName} />}
             {currentView === "datagrid" && <DataGridView ref={dataGridRef} tasks={filteredTasks} onTaskAdd={handleTaskAdd} onTaskUpdate={handleTaskUpdate} />}

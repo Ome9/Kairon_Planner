@@ -9,7 +9,7 @@ const taskSchema = new mongoose.Schema({
   dependencies: [{ type: Number }],
   status: { 
     type: String, 
-    enum: ['not_started', 'in_progress', 'review', 'completed'],
+    enum: ['not_started', 'todo', 'in_progress', 'review', 'completed'],
     default: 'not_started'
   },
   completed: { type: Boolean, default: false },

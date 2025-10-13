@@ -27,7 +27,7 @@ export interface Task {
   category: string;
   estimated_duration_hours: number;
   dependencies: number[];
-  status?: 'not_started' | 'in_progress' | 'review' | 'completed';
+  status?: 'not_started' | 'todo' | 'in_progress' | 'review' | 'completed';
   start_date?: string;
   end_date?: string;
   progress?: number;

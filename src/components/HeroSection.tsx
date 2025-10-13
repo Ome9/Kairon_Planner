@@ -50,17 +50,14 @@ export const HeroSection = ({ onGeneratePlan, isLoading }: HeroSectionProps) => 
             {/* Project Goal Box */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
+              animate={{ opacity: 0.8, y: 0 }}
               transition={{ delay: 0.3, duration: 0.8, ease: "easeOut" }}
-              className="relative group"
+              className="relative"
             >
-              {/* Glow effect */}
-              <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 via-purple-500 to-purple-600 rounded-2xl blur-lg opacity-25 group-hover:opacity-40 transition duration-500"></div>
-              
-              <div className="relative bg-slate-900/90 backdrop-blur-xl border border-slate-700/50 shadow-2xl p-6 md:p-8 rounded-2xl">
-                <div className="space-y-4">
+              <div className="relative bg-white/5 backdrop-blur-2xl border border-white/10 shadow-2xl p-8">
+                <div className="space-y-6">
                   <div>
-                    <label htmlFor="goal-input" className="text-sm font-semibold mb-2 block tracking-wide text-slate-300">
+                    <label htmlFor="goal-input" className="text-sm font-bold mb-3 block text-white/90">
                       PROJECT GOAL
                     </label>
                     <Textarea
@@ -68,7 +65,7 @@ export const HeroSection = ({ onGeneratePlan, isLoading }: HeroSectionProps) => 
                       placeholder="Describe your project goal..."
                       value={goalText}
                       onChange={(e) => setGoalText(e.target.value)}
-                      className="min-h-[120px] resize-none text-base bg-slate-950/50 border-slate-700/50 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-all text-slate-100 placeholder:text-slate-500 rounded-xl"
+                      className="min-h-[150px] resize-none text-base bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/10 focus:border-white/30 focus:ring-0 transition-all text-white placeholder:text-white/40"
                       disabled={isLoading}
                     />
                   </div>
@@ -78,15 +75,15 @@ export const HeroSection = ({ onGeneratePlan, isLoading }: HeroSectionProps) => 
                       onClick={handleSubmit}
                       disabled={!goalText.trim() || isLoading}
                       size="lg"
-                      className={`font-semibold text-base transition-all rounded-xl px-6 ${
+                      className={`flex-1 font-semibold text-base transition-all ${
                         goalText.trim()
-                          ? "bg-gradient-to-r from-purple-600 via-purple-500 to-purple-600 hover:shadow-lg hover:shadow-purple-500/50 text-white"
-                          : "bg-slate-800 text-slate-600 cursor-not-allowed"
+                          ? "bg-white text-slate-900 hover:bg-white/90 hover:shadow-lg"
+                          : "bg-white/10 text-white/30 cursor-not-allowed"
                       }`}
                     >
                       {isLoading ? (
                         <>
-                          <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin mr-2" />
+                          <div className="w-5 h-5 border-2 border-slate-900/20 border-t-slate-900 rounded-full animate-spin mr-2" />
                           Generating...
                         </>
                       ) : (
@@ -98,7 +95,8 @@ export const HeroSection = ({ onGeneratePlan, isLoading }: HeroSectionProps) => 
                       onClick={handleReset}
                       disabled={!goalText || isLoading}
                       size="lg"
-                      className="font-semibold text-base border-slate-600 text-slate-300 hover:bg-slate-800 hover:text-purple-400 hover:border-purple-500/50 transition-all bg-slate-900 rounded-xl"
+                      variant="outline"
+                      className="font-semibold text-base border border-white/20 text-white hover:bg-white/10 hover:border-white/30 transition-all bg-transparent"
                     >
                       Reset
                     </Button>
