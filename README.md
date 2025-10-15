@@ -108,7 +108,7 @@ git push origin main
 ```env
 NODE_ENV=production
 PORT=3001
-MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/kairon_planner
+MONGODB_URI=your_mongodb_cluster_link
 JWT_SECRET=your-random-32-char-secret
 CORS_ORIGIN=https://your-app.vercel.app
 ```
