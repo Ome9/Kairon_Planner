@@ -35,10 +35,20 @@ export const GanttView = forwardRef<GanttViewHandle, GanttViewProps>(
       let latestEnd = new Date();
       
       tasks.forEach((task, index) => {
-        // Use task dates if available, otherwise calculate from index
-        const taskStart = task.start_date ? new Date(task.start_date) : new Date(new Date().getTime() + index * 24 * 60 * 60 * 1000);
+        // Prioritize scheduled dates from Smart Scheduler, then manual dates
+        const taskStart = task.scheduled_start 
+          ? new Date(task.scheduled_start)
+          : task.start_date 
+            ? new Date(task.start_date) 
+            : new Date(new Date().getTime() + index * 24 * 60 * 60 * 1000);
+        
         const taskDuration = Math.max(1, Math.ceil(task.estimated_duration_hours / 8));
-        const taskEnd = task.end_date ? new Date(task.end_date) : new Date(taskStart.getTime() + taskDuration * 24 * 60 * 60 * 1000);
+        
+        const taskEnd = task.scheduled_end
+          ? new Date(task.scheduled_end)
+          : task.end_date 
+            ? new Date(task.end_date) 
+            : new Date(taskStart.getTime() + taskDuration * 24 * 60 * 60 * 1000);
         
         if (index === 0 || taskStart < earliestStart) earliestStart = taskStart;
         if (index === 0 || taskEnd > latestEnd) latestEnd = taskEnd;
@@ -78,11 +88,15 @@ export const GanttView = forwardRef<GanttViewHandle, GanttViewProps>(
     const columnWidth = timeScale === "day" ? 60 : timeScale === "week" ? 100 : 140;
 
     const getTaskBarStyle = (task: Task, index: number) => {
-      // Use task dates if available, otherwise calculate from index
+      // Prioritize scheduled dates from Smart Scheduler, then manual dates
       let taskStart: Date;
       let taskEnd: Date;
       
-      if (task.start_date && task.end_date) {
+      if (task.scheduled_start && task.scheduled_end) {
+        // Use scheduled dates from Smart Scheduler
+        taskStart = new Date(task.scheduled_start);
+        taskEnd = new Date(task.scheduled_end);
+      } else if (task.start_date && task.end_date) {
         taskStart = new Date(task.start_date);
         taskEnd = new Date(task.end_date);
       } else if (task.start_date) {
@@ -205,14 +219,18 @@ export const GanttView = forwardRef<GanttViewHandle, GanttViewProps>(
                       <div className="absolute inset-0 flex items-center px-2">
                         <div 
                           className={cn(
-                            "h-10 rounded-lg flex items-center px-3 text-sm font-semibold text-white shadow-lg transition-all hover:shadow-xl hover:scale-[1.02] cursor-pointer relative overflow-hidden border-2 border-white/20",
+                            "h-10 rounded-lg flex items-center px-3 text-sm font-semibold text-white shadow-lg transition-all hover:shadow-xl hover:scale-[1.02] cursor-pointer relative overflow-hidden",
                             getCategoryColor(task.category),
-                            task.completed && "opacity-70"
+                            task.completed && "opacity-70",
+                            task.is_critical_path ? "border-2 border-red-500 ring-2 ring-red-500/30" : "border-2 border-white/20"
                           )} 
                           style={barStyle} 
-                          title={`${task.title}\nDuration: ${task.estimated_duration_hours}h\nStatus: ${task.completed ? 'Completed' : 'In Progress'}`}
+                          title={`${task.title}\nDuration: ${task.estimated_duration_hours}h\nStatus: ${task.completed ? 'Completed' : 'In Progress'}${task.is_critical_path ? '\n⚠️ CRITICAL PATH' : ''}`}
                         >
                           <span className="truncate text-shadow">{task.title}</span>
+                          {task.is_critical_path && !task.completed && (
+                            <Badge variant="destructive" className="ml-2 text-xs">CRITICAL</Badge>
+                          )}
                           {task.completed && (
                             <div className="absolute inset-0 bg-gradient-to-r from-green-600/40 to-green-800/40 flex items-center justify-center backdrop-blur-[1px]">
                               <span className="text-sm font-bold drop-shadow-lg">✓ DONE</span>

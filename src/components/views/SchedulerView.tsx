@@ -26,11 +26,16 @@ export const SchedulerView = ({ tasks }: SchedulerViewProps) => {
   // Transform tasks into scheduler appointments
   const appointments = useMemo(() => {
     return tasks.map((task, index) => {
-      // Use task dates if available
+      // Use task dates - prioritize scheduled dates from Smart Scheduler
       let startDate: Date;
       let endDate: Date;
       
-      if (task.start_date && task.end_date) {
+      if (task.scheduled_start && task.scheduled_end) {
+        // Use scheduled dates from Smart Scheduler
+        startDate = new Date(task.scheduled_start);
+        endDate = new Date(task.scheduled_end);
+      } else if (task.start_date && task.end_date) {
+        // Fallback to manual dates
         startDate = new Date(task.start_date);
         endDate = new Date(task.end_date);
       } else if (task.start_date) {
@@ -55,6 +60,7 @@ export const SchedulerView = ({ tasks }: SchedulerViewProps) => {
         disabled: task.completed, // Mark as disabled if completed
         color: task.completed ? "#10b981" : getCategoryColor(task.category), // Green for completed
         completed: task.completed,
+        isCriticalPath: task.is_critical_path, // Mark critical path tasks
       };
     });
   }, [tasks]);
