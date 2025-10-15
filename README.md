@@ -166,13 +166,6 @@ https://your-app.vercel.app
 
 ---
 
-### 💰 Cost: 100% FREE
-- MongoDB M0: **$0/month** (512MB)
-- Render Free: **$0/month** (750 hrs)
-- Vercel Hobby: **$0/month** (100GB)
-
----
-
 ### 🔧 Troubleshooting
 - **CORS Error**: Update `CORS_ORIGIN` in Render with exact Vercel URL
 - **Backend 502**: Wait 60s (cold start on free tier)
