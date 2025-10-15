@@ -43,11 +43,20 @@ export const SavedPlans = () => {
   const userId = user?._id || "";
 
   const loadPlans = async () => {
+    if (!userId) {
+      console.warn('⚠️ No user ID available, skipping plans load');
+      setIsLoading(false);
+      return;
+    }
+    
     setIsLoading(true);
     try {
+      console.log('📥 Loading plans for user:', userId);
       const response = await plansAPI.getPlans({ userId, sortBy: 'updatedAt', order: 'desc' });
+      console.log('✅ Plans loaded:', response.data?.length || 0, 'plans');
       setPlans(response.data || []);
     } catch (error) {
+      console.error('❌ Error loading plans:', error);
       toast({
         title: "Error",
         description: "Failed to load plans. Please try again.",
@@ -59,9 +68,11 @@ export const SavedPlans = () => {
   };
 
   useEffect(() => {
-    loadPlans();
+    if (userId) {
+      loadPlans();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [userId]);
 
   const filterPlans = () => {
     let filtered = plans;

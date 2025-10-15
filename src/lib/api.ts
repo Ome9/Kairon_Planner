@@ -72,6 +72,21 @@ export interface Plan {
   updatedAt?: Date;
   lastAccessedAt?: Date;
   isStarred?: boolean;
+  project_start_date?: string;
+  project_end_date?: string;
+  working_hours?: {
+    start: string;
+    end: string;
+    hours_per_day: number;
+  };
+  working_days?: number[];
+  schedule_settings?: {
+    auto_schedule_enabled: boolean;
+    last_scheduled_at?: Date;
+    schedule_from?: 'now' | 'project_start';
+    respect_dependencies: boolean;
+    respect_working_hours: boolean;
+  };
   sharedWith?: Array<{
     userId: string;
     permission: 'view' | 'edit' | 'admin';

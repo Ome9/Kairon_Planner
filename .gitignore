@@ -96,3 +96,4 @@ WX_GANTT_INTEGRATION.md
 # Debug
 debug.log
 .vscode/launch.json
+.vercel

@@ -37,6 +37,11 @@ const Index = () => {
       const convertedPlan: ProjectPlan = {
         projectName: loadedPlan.projectName,
         projectSummary: loadedPlan.projectSummary,
+        project_start_date: loadedPlan.project_start_date,
+        project_end_date: loadedPlan.project_end_date,
+        working_hours: loadedPlan.working_hours,
+        working_days: loadedPlan.working_days,
+        schedule_settings: loadedPlan.schedule_settings,
         tasks: loadedPlan.tasks.map((task: { 
           id: number;
           title: string;
@@ -51,9 +56,23 @@ const Index = () => {
           completed?: boolean;
           start_date?: string;
           end_date?: string;
+          due_date?: string;
+          scheduled_start?: string;
+          scheduled_end?: string;
+          actual_start?: string;
+          actual_end?: string;
           progress?: number;
           assignee?: string;
           priority?: string;
+          cover_image?: string;
+          tags?: string[];
+          estimated_complexity?: string;
+          subtasks?: string[];
+          is_milestone?: boolean;
+          blocked_by?: number[];
+          blocking?: number[];
+          slack_time?: number;
+          is_critical_path?: boolean;
         }) => ({
           ...task,
           status: convertAPIStatusToTaskStatus(task.status),
@@ -65,6 +84,22 @@ const Index = () => {
           // Preserve dates
           start_date: task.start_date,
           end_date: task.end_date,
+          // Preserve scheduling data
+          due_date: task.due_date,
+          scheduled_start: task.scheduled_start,
+          scheduled_end: task.scheduled_end,
+          actual_start: task.actual_start,
+          actual_end: task.actual_end,
+          // Preserve smart features
+          cover_image: task.cover_image,
+          tags: task.tags,
+          estimated_complexity: task.estimated_complexity as 'Low' | 'Medium' | 'High' | undefined,
+          subtasks: task.subtasks,
+          is_milestone: task.is_milestone,
+          blocked_by: task.blocked_by,
+          blocking: task.blocking,
+          slack_time: task.slack_time,
+          is_critical_path: task.is_critical_path,
         })),
       };
       
@@ -75,6 +110,7 @@ const Index = () => {
         planId: loadedPlan._id,
         projectName: loadedPlan.projectName,
         tasksCount: loadedPlan.tasks.length,
+        hasScheduling: !!loadedPlan.project_start_date,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         firstTaskPositions: loadedPlan.tasks.slice(0, 3).map((t: any) => ({
           id: t.id,
@@ -152,6 +188,11 @@ const Index = () => {
           status: convertStatus(task.status),
           start_date: task.start_date || new Date().toISOString(),
           end_date: task.end_date || new Date(Date.now() + task.estimated_duration_hours * 60 * 60 * 1000).toISOString(),
+          due_date: task.due_date,
+          scheduled_start: task.scheduled_start,
+          scheduled_end: task.scheduled_end,
+          actual_start: task.actual_start,
+          actual_end: task.actual_end,
           progress: task.progress || 0,
           assignee: task.assignee || "",
           priority: (task.priority || "medium") as "low" | "medium" | "high" | "urgent",
@@ -159,6 +200,15 @@ const Index = () => {
           kanban_column: task.kanban_column,
           kanban_position: task.kanban_position,
           completed: task.completed ?? false,
+          cover_image: task.cover_image,
+          tags: task.tags,
+          estimated_complexity: task.estimated_complexity,
+          subtasks: task.subtasks,
+          is_milestone: task.is_milestone,
+          blocked_by: task.blocked_by,
+          blocking: task.blocking,
+          slack_time: task.slack_time,
+          is_critical_path: task.is_critical_path,
         }));
         
         console.log('📝 Tasks being saved (first 3):', 
@@ -166,9 +216,9 @@ const Index = () => {
             id: t.id,
             title: t.title,
             status: t.status,
-            kanban_column: t.kanban_column,
-            kanban_position: t.kanban_position,
-            completed: t.completed
+            scheduled_start: t.scheduled_start,
+            scheduled_end: t.scheduled_end,
+            is_critical_path: t.is_critical_path,
           }))
         );
         
@@ -177,6 +227,10 @@ const Index = () => {
           projectSummary: planData.projectSummary,
           tasks: tasksToSave,
           status: "active",
+          project_start_date: planData.project_start_date,
+          project_end_date: planData.project_end_date,
+          working_hours: planData.working_hours,
+          schedule_settings: planData.schedule_settings,
         });
         setHasUnsavedChanges(false);
         toast.success("Plan saved successfully!");
@@ -197,6 +251,11 @@ const Index = () => {
             status: convertStatus(task.status),
             start_date: task.start_date || new Date().toISOString(),
             end_date: task.end_date || new Date(Date.now() + task.estimated_duration_hours * 60 * 60 * 1000).toISOString(),
+            due_date: task.due_date,
+            scheduled_start: task.scheduled_start,
+            scheduled_end: task.scheduled_end,
+            actual_start: task.actual_start,
+            actual_end: task.actual_end,
             progress: task.progress || 0,
             assignee: task.assignee || "",
             priority: (task.priority || "medium") as "low" | "medium" | "high" | "urgent",
@@ -204,10 +263,23 @@ const Index = () => {
             kanban_column: task.kanban_column,
             kanban_position: task.kanban_position,
             completed: task.completed ?? false,
+            cover_image: task.cover_image,
+            tags: task.tags,
+            estimated_complexity: task.estimated_complexity,
+            subtasks: task.subtasks,
+            is_milestone: task.is_milestone,
+            blocked_by: task.blocked_by,
+            blocking: task.blocking,
+            slack_time: task.slack_time,
+            is_critical_path: task.is_critical_path,
           })),
           status: "active",
           tags: [],
           color: "#06b6d4",
+          project_start_date: planData.project_start_date,
+          project_end_date: planData.project_end_date,
+          working_hours: planData.working_hours,
+          schedule_settings: planData.schedule_settings,
         });
 
         setSavedPlanId(response.data._id!);
