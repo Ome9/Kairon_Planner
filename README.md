@@ -84,10 +84,7 @@ Free accounts needed:
 1. Create FREE M0 cluster at https://mongodb.com/cloud/atlas
 2. Database Access → Add User (username + password)
 3. Network Access → Add IP: `0.0.0.0/0`
-4. Copy connection string:
-   ```
-   mongodb+srv://username:password@cluster.mongodb.net/kairon_planner
-   ```
+4. Copy connection string.
 
 ---
 
